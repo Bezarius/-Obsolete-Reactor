@@ -55,11 +55,9 @@ namespace EcsRx.Systems.Executor
 
         public void OnEntityComponentRemoved(ComponentRemovedEvent args)
         {
-            var originalComponents = args.Entity.Components.ToList();
-            originalComponents.Add(args.Component);
-
-            var applicableSystems = _systems.GetApplicableSystems(originalComponents);
-            var effectedSystems = applicableSystems.Where(x => x.TargetGroup.TargettedComponents.Contains(args.Component.GetType()));
+            var componentType = args.Component.GetType();
+            var effectedSystems =
+                _systems.Where(x => x.TargetGroup.TargettedComponents.Contains(componentType));
 
             foreach (var effectedSystem in effectedSystems)
             {
