@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using EcsRx.Entities;
 using EcsRx.Events;
@@ -10,7 +11,7 @@ using UniRx;
 
 namespace EcsRx.Systems.Executor
 {
-    public class SystemExecutor : ISystemExecutor, IDisposable
+    public sealed class SystemExecutor : ISystemExecutor, IDisposable
     {
         private readonly IList<ISystem> _systems;
         private readonly IList<IDisposable> _eventSubscriptions;
@@ -27,7 +28,7 @@ namespace EcsRx.Systems.Executor
         public IManualSystemHandler ManualSystemHandler { get; private set; }
 
         public SystemExecutor(IPoolManager poolManager, IEventSystem eventSystem,
-            IReactToEntitySystemHandler reactToEntitySystemHandler, IReactToGroupSystemHandler reactToGroupSystemHandler, 
+            IReactToEntitySystemHandler reactToEntitySystemHandler, IReactToGroupSystemHandler reactToGroupSystemHandler,
             ISetupSystemHandler setupSystemHandler, IReactToDataSystemHandler reactToDataSystemHandler,
             IManualSystemHandler manualSystemHandler)
         {
@@ -43,7 +44,7 @@ namespace EcsRx.Systems.Executor
             var removeEntitySubscription = EventSystem.Receive<EntityRemovedEvent>().Subscribe(OnEntityRemovedFromPool);
             var addComponentSubscription = EventSystem.Receive<ComponentAddedEvent>().Subscribe(OnEntityComponentAdded);
             var removeComponentSubscription = EventSystem.Receive<ComponentRemovedEvent>().Subscribe(OnEntityComponentRemoved);
-            
+
             _systems = new List<ISystem>();
             _systemSubscriptions = new Dictionary<ISystem, IList<SubscriptionToken>>();
             _eventSubscriptions = new List<IDisposable>
@@ -55,9 +56,15 @@ namespace EcsRx.Systems.Executor
 
         public void OnEntityComponentRemoved(ComponentRemovedEvent args)
         {
-            var componentType = args.Component.GetType();
-            var effectedSystems =
-                _systems.Where(x => x.TargetGroup.TargettedComponents.Contains(componentType));
+            var type = args.Component.GetType();
+
+            // get affected systems for remove subscribes
+            var componentList = args.Entity.Components.Select(x => x.GetType()).ToList();
+            componentList.Add(type);
+            var effectedSystems = _systems
+                .Where(x => x.TargetGroup.TargettedComponents.Contains(type))
+                .Where(x => x.TargetGroup.TargettedComponents
+                .All(componentList.Contains)).ToList();
 
             foreach (var effectedSystem in effectedSystems)
             {
@@ -77,18 +84,18 @@ namespace EcsRx.Systems.Executor
         {
             var applicableSystems = _systems.GetApplicableSystems(args.Entity);
             var effectedSystems = applicableSystems.Where(x => x.TargetGroup.TargettedComponents.Contains(args.Component.GetType()));
-            
+
             ApplyEntityToSystems(effectedSystems, args.Entity);
         }
 
         public void OnEntityAddedToPool(EntityAddedEvent args)
         {
-            if(!args.Entity.Components.Any()) { return; }
+            if (!args.Entity.Components.Any()) { return; }
 
             var applicableSystems = _systems.GetApplicableSystems(args.Entity);
             ApplyEntityToSystems(applicableSystems, args.Entity);
         }
-        
+
         public void OnEntityRemovedFromPool(EntityRemovedEvent args)
         {
             var applicableSystems = _systems.GetApplicableSystems(args.Entity);
@@ -113,7 +120,7 @@ namespace EcsRx.Systems.Executor
                     var subscription = ReactToEntitySystemHandler.ProcessEntity(x, entity);
                     _systemSubscriptions[x].Add(subscription);
                 });
-            
+
             systems.Where(x => x.IsReactiveDataSystem())
                 .OrderByPriority()
                 .ForEachRun(x =>
@@ -170,7 +177,7 @@ namespace EcsRx.Systems.Executor
                 var subscriptions = ReactToEntitySystemHandler.Setup(system as IReactToEntitySystem);
                 subscriptionList.AddRange(subscriptions);
             }
-            
+
             if (system.IsReactiveDataSystem())
             {
                 var subscriptions = ReactToDataSystemHandler.SetupWithoutType(system);
@@ -185,12 +192,12 @@ namespace EcsRx.Systems.Executor
 
         public int GetSubscriptionCountForSystem(ISystem system)
         {
-            if(!_systemSubscriptions.ContainsKey(system)) { return 0; }
+            if (!_systemSubscriptions.ContainsKey(system)) { return 0; }
             return _systemSubscriptions[system].Count;
         }
 
         public int GetTotalSubscriptions()
-        {  return _systemSubscriptions.Values.Sum(x => x.Count); }
+        { return _systemSubscriptions.Values.Sum(x => x.Count); }
 
         public void Dispose()
         {
