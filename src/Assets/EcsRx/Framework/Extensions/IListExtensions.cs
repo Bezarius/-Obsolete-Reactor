@@ -2,6 +2,7 @@
 using System.Linq;
 using EcsRx.Entities;
 using EcsRx.Systems.Executor;
+using ModestTree;
 
 namespace EcsRx.Extensions
 {
@@ -12,8 +13,7 @@ namespace EcsRx.Extensions
 
         public static void RemoveAll<T>(this IList<T> list, IEnumerable<T> elementsToRemove)
         {
-            elementsToRemove.ToArray()
-                .ForEachRun(x => list.Remove(x));
+            elementsToRemove.ForEachRun(list.RemoveWithConfirm);
         }
     }
 }
