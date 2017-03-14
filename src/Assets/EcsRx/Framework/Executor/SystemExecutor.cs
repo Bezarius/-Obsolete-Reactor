@@ -5,6 +5,7 @@ using System.Linq;
 using EcsRx.Entities;
 using EcsRx.Events;
 using EcsRx.Extensions;
+using EcsRx.Groups;
 using EcsRx.Pools;
 using EcsRx.Systems.Executor.Handlers;
 using UniRx;
@@ -43,13 +44,19 @@ namespace EcsRx.Systems.Executor
             var addEntitySubscription = EventSystem.Receive<EntityAddedEvent>().Subscribe(OnEntityAddedToPool);
             var removeEntitySubscription = EventSystem.Receive<EntityRemovedEvent>().Subscribe(OnEntityRemovedFromPool);
             var addComponentSubscription = EventSystem.Receive<ComponentAddedEvent>().Subscribe(OnEntityComponentAdded);
+            var addComponentsSubscription =
+                EventSystem.Receive<ComponentsAddedEvent>().Subscribe(OnEntityComponentsAdded);
             var removeComponentSubscription = EventSystem.Receive<ComponentRemovedEvent>().Subscribe(OnEntityComponentRemoved);
 
             _systems = new List<ISystem>();
             _systemSubscriptions = new Dictionary<ISystem, IList<SubscriptionToken>>();
             _eventSubscriptions = new List<IDisposable>
             {
-                addEntitySubscription, removeEntitySubscription, addComponentSubscription, removeComponentSubscription
+                addEntitySubscription,
+                removeEntitySubscription,
+                addComponentSubscription,
+                removeComponentSubscription,
+                addComponentsSubscription
             };
 
         }
@@ -86,6 +93,18 @@ namespace EcsRx.Systems.Executor
             var effectedSystems = applicableSystems.Where(x => x.TargetGroup.TargettedComponents.Contains(args.Component.GetType()));
 
             ApplyEntityToSystems(effectedSystems, args.Entity);
+        }
+
+        private readonly Dictionary<SystemGroupKey, List<ISystem>> _systemGroups =  new Dictionary<SystemGroupKey, List<ISystem>>();
+
+        public void OnEntityComponentsAdded(ComponentsAddedEvent args)
+        {
+            var types = args.Components.Select(x => x.GetType()).ToArray();
+            var group = new SystemGroupKey(types);
+            if (!_systemGroups.ContainsKey(group))
+            {
+                
+            }
         }
 
         public void OnEntityAddedToPool(EntityAddedEvent args)

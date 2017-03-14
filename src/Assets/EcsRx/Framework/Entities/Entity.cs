@@ -34,6 +34,15 @@ namespace EcsRx.Entities
         public T AddComponent<T>() where T : class, IComponent, new()
         { return (T)AddComponent(new T()); }
 
+        public void AddComponents(IEnumerable<IComponent> components)
+        {
+            foreach (var component in components)
+            {
+                _components.Add(component.GetType(), component);
+            }
+            EventSystem.Publish(new ComponentsAddedEvent(this, components));
+        }
+
         public void RemoveComponent(IComponent component)
         {
             if(!_components.ContainsKey(component.GetType())) { return; }

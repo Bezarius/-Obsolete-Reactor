@@ -13,11 +13,13 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile></CompilerResponseFile>
+    <CompilerResponseFile>
+    </CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.5.0f3</UnityVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <LangVersion Condition=" '$(VisualStudioVersion)' != '10.0' ">4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -158,6 +160,7 @@
     <Compile Include="Assets\EcsRx\Framework\Entities\IEntityFactory.cs" />
     <Compile Include="Assets\EcsRx\Framework\Events\ComponentAddedEvent.cs" />
     <Compile Include="Assets\EcsRx\Framework\Events\ComponentRemovedEvent.cs" />
+    <Compile Include="Assets\EcsRx\Framework\Events\ComponentsAddedEvent.cs" />
     <Compile Include="Assets\EcsRx\Framework\Events\EntityAddedEvent.cs" />
     <Compile Include="Assets\EcsRx\Framework\Events\EntityRemovedEvent.cs" />
     <Compile Include="Assets\EcsRx\Framework\Events\EventSystem.cs" />
@@ -205,6 +208,7 @@
     <Compile Include="Assets\EcsRx\Framework\Groups\IGroupAccessorQuery.cs" />
     <Compile Include="Assets\EcsRx\Framework\Groups\IHasPredicate.cs" />
     <Compile Include="Assets\EcsRx\Framework\Groups\ITypeGroup.cs" />
+    <Compile Include="Assets\EcsRx\Framework\Groups\SystemGroup.cs" />
     <Compile Include="Assets\EcsRx\Framework\Pools\DefaultPoolFactory.cs" />
     <Compile Include="Assets\EcsRx\Framework\Pools\GroupAccessorToken.cs" />
     <Compile Include="Assets\EcsRx\Framework\Pools\IPool.cs" />
