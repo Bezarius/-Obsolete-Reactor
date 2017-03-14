@@ -99,12 +99,48 @@ namespace EcsRx.Systems.Executor
 
         public void OnEntityComponentsAdded(ComponentsAddedEvent args)
         {
-            var types = args.Components.Select(x => x.GetType()).ToArray();
-            var group = new SystemGroupKey(types);
-            if (!_systemGroups.ContainsKey(group))
+            List<ISystem> systems;
+
+            var entityTypes = args.Entity.Components.Select(x => x.GetType()).ToArray();
+            var entityGroupKey = new SystemGroupKey(entityTypes);
+
+            if (!_systemGroups.ContainsKey(entityGroupKey))
             {
-                
+                // add new system group
+                var applicableSystems = _systems.GetApplicableSystems(args.Entity).ToList();
+                _systemGroups.Add(entityGroupKey, applicableSystems);
+
+                if (entityTypes.Length == args.Components.Count())
+                {
+                    systems = applicableSystems;
+                }
+                else
+                {
+                    systems = new List<ISystem>();
+                    foreach (var component in args.Components)
+                    {
+                        var effectedSystems =
+                            applicableSystems.Where(x => x.TargetGroup.TargettedComponents.Contains(component.GetType()));
+                        systems.AddRange(effectedSystems);
+                    }
+                }
             }
+            else
+            {
+                // work with existed system group
+                var prev = args.Entity.Components.Except(args.Components).ToList();
+                if (prev.Count > 0)
+                {
+                    var prevEntityGroup = new SystemGroupKey(prev.Select(x => x.GetType()).ToArray());
+                    systems = _systemGroups[entityGroupKey].Except(_systemGroups[prevEntityGroup]).ToList();
+                }
+                else
+                {
+                    systems = _systemGroups[entityGroupKey];
+                }
+            }
+
+            ApplyEntityToSystems(systems, args.Entity);
         }
 
         public void OnEntityAddedToPool(EntityAddedEvent args)
