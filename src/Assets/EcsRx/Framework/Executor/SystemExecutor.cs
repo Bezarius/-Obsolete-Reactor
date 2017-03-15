@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using EcsRx.Components;
 using EcsRx.Entities;
 using EcsRx.Events;
 using EcsRx.Extensions;
@@ -17,6 +18,8 @@ namespace EcsRx.Systems.Executor
         private readonly IList<ISystem> _systems;
         private readonly IList<IDisposable> _eventSubscriptions;
         private readonly Dictionary<ISystem, IList<SubscriptionToken>> _systemSubscriptions;
+
+        private readonly Dictionary<SystemGroupKey, List<ISystem>> _systemGroups = new Dictionary<SystemGroupKey, List<ISystem>>();
 
         public IEventSystem EventSystem { get; private set; }
         public IPoolManager PoolManager { get; private set; }
@@ -47,6 +50,7 @@ namespace EcsRx.Systems.Executor
             var addComponentsSubscription =
                 EventSystem.Receive<ComponentsAddedEvent>().Subscribe(OnEntityComponentsAdded);
             var removeComponentSubscription = EventSystem.Receive<ComponentRemovedEvent>().Subscribe(OnEntityComponentRemoved);
+            var removeComponentsSubscription = EventSystem.Receive<ComponentsRemovedEvent>().Subscribe(OnEntityComponentsRemoved);
 
             _systems = new List<ISystem>();
             _systemSubscriptions = new Dictionary<ISystem, IList<SubscriptionToken>>();
@@ -56,30 +60,112 @@ namespace EcsRx.Systems.Executor
                 removeEntitySubscription,
                 addComponentSubscription,
                 removeComponentSubscription,
-                addComponentsSubscription
+                addComponentsSubscription,
+                removeComponentsSubscription
             };
-
         }
 
-        public void OnEntityComponentRemoved(ComponentRemovedEvent args)
+        private void RegisterSystemGroup()
         {
-            var type = args.Component.GetType();
+            
+        }
 
-            // get affected systems for remove subscribes
-            var componentList = args.Entity.Components.Select(x => x.GetType()).ToList();
-            componentList.Add(type);
-            var effectedSystems = _systems
-                .Where(x => x.TargetGroup.TargettedComponents.Contains(type))
-                .Where(x => x.TargetGroup.TargettedComponents
-                .All(componentList.Contains)).ToList();
+
+        private void ProcessAddComponentsToEntity(IEntity entity, IEnumerable<IComponent> components)
+        {
+            // todo: add checks
+            try
+            {
+                IEnumerable<ISystem> systems;
+
+                var entityTypes = entity.Components.Select(x => x.GetType()).ToArray();
+                var entityGroupKey = new SystemGroupKey(entityTypes);
+
+                if (!_systemGroups.ContainsKey(entityGroupKey))
+                {
+                    // add new system group
+                    var applicableSystems = _systems.GetApplicableSystems(entity).ToList();
+                    if (applicableSystems.Count == 0)
+                        return;
+
+                    _systemGroups.Add(entityGroupKey, applicableSystems);
+
+                    if (entityTypes.Length == components.Count())
+                    {
+                        systems = applicableSystems;
+                    }
+                    else
+                    {
+                        var effectedSystems = new List<ISystem>();
+                        foreach (var component in components)
+                        {
+                            effectedSystems.AddRange(
+                                applicableSystems.Where(
+                                    x => x.TargetGroup.TargettedComponents.Contains(component.GetType())));
+                        }
+                        systems = effectedSystems;
+                    }
+                }
+                else
+                {
+                    // work with existed system group
+                    var prevComponentsTypes = entity.Components.Except(components).Select(x => x.GetType()).ToArray();
+                    if (prevComponentsTypes.Length > 0)
+                    {
+                        var prevEntityGroupKey = new SystemGroupKey(prevComponentsTypes);
+                        var currentSystems = _systemGroups[entityGroupKey];
+                        List<ISystem> prevSystems;
+                        if (!_systemGroups.ContainsKey(prevEntityGroupKey))
+                        {
+                            var applicableSystems = _systems.GetApplicableSystems(entity).ToList();
+                            var effectedSystems = new List<ISystem>();
+                            foreach (var component in components)
+                            {
+                                effectedSystems.AddRange(
+                                    applicableSystems.Where(
+                                        x => x.TargetGroup.TargettedComponents.Contains(component.GetType())));
+                            }
+                            prevSystems = effectedSystems;
+                        }
+                        else
+                        {
+                            prevSystems = _systemGroups[prevEntityGroupKey];
+                        }
+
+                        systems = currentSystems.Except(prevSystems).ToList();
+                    }
+                    else
+                    {
+                        systems = _systemGroups[entityGroupKey];
+                    }
+                }
+
+                ApplyEntityToSystems(systems, entity);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+            }
+        }
+
+        private void ProcessRemoveComponentsFromEntity(IEntity entity, IEnumerable<IComponent> components)
+        {
+            var entityTypes = entity.Components.Select(x => x.GetType()).ToArray();
+            var entityGroupKey = new SystemGroupKey(entityTypes);
+            var prevComponentsTypes = entity.Components.Union(components).Select(x => x.GetType()).ToArray();
+            var prevEntityGroupKey = new SystemGroupKey(prevComponentsTypes);
+            var effectedSystems = _systemGroups[entityGroupKey].Except(_systemGroups[prevEntityGroupKey]);
 
             foreach (var effectedSystem in effectedSystems)
             {
                 if (effectedSystem is ITeardownSystem)
-                { (effectedSystem as ITeardownSystem).Teardown(args.Entity); }
+                {
+                    (effectedSystem as ITeardownSystem).Teardown(entity);
+                }
 
+                // todo: optimize. mb to dict?
                 var subscriptionTokens = _systemSubscriptions[effectedSystem]
-                    .Where(x => x.AssociatedObject == args.Entity)
+                    .Where(x => x.AssociatedObject == entity)
                     .ToList();
 
                 _systemSubscriptions[effectedSystem].RemoveAll(subscriptionTokens);
@@ -89,72 +175,34 @@ namespace EcsRx.Systems.Executor
 
         public void OnEntityComponentAdded(ComponentAddedEvent args)
         {
-            var applicableSystems = _systems.GetApplicableSystems(args.Entity);
-            var effectedSystems = applicableSystems.Where(x => x.TargetGroup.TargettedComponents.Contains(args.Component.GetType()));
-
-            ApplyEntityToSystems(effectedSystems, args.Entity);
+            ProcessAddComponentsToEntity(args.Entity, new[] { args.Component });
         }
-
-        private readonly Dictionary<SystemGroupKey, List<ISystem>> _systemGroups =  new Dictionary<SystemGroupKey, List<ISystem>>();
 
         public void OnEntityComponentsAdded(ComponentsAddedEvent args)
         {
-            List<ISystem> systems;
+            ProcessAddComponentsToEntity(args.Entity, args.Components);
+        }
 
-            var entityTypes = args.Entity.Components.Select(x => x.GetType()).ToArray();
-            var entityGroupKey = new SystemGroupKey(entityTypes);
+        public void OnEntityComponentRemoved(ComponentRemovedEvent args)
+        {
+            ProcessRemoveComponentsFromEntity(args.Entity, new[] { args.Component });
+        }
 
-            if (!_systemGroups.ContainsKey(entityGroupKey))
-            {
-                // add new system group
-                var applicableSystems = _systems.GetApplicableSystems(args.Entity).ToList();
-                _systemGroups.Add(entityGroupKey, applicableSystems);
-
-                if (entityTypes.Length == args.Components.Count())
-                {
-                    systems = applicableSystems;
-                }
-                else
-                {
-                    systems = new List<ISystem>();
-                    foreach (var component in args.Components)
-                    {
-                        var effectedSystems =
-                            applicableSystems.Where(x => x.TargetGroup.TargettedComponents.Contains(component.GetType()));
-                        systems.AddRange(effectedSystems);
-                    }
-                }
-            }
-            else
-            {
-                // work with existed system group
-                var prev = args.Entity.Components.Except(args.Components).ToList();
-                if (prev.Count > 0)
-                {
-                    var prevEntityGroup = new SystemGroupKey(prev.Select(x => x.GetType()).ToArray());
-                    systems = _systemGroups[entityGroupKey].Except(_systemGroups[prevEntityGroup]).ToList();
-                }
-                else
-                {
-                    systems = _systemGroups[entityGroupKey];
-                }
-            }
-
-            ApplyEntityToSystems(systems, args.Entity);
+        public void OnEntityComponentsRemoved(ComponentsRemovedEvent args)
+        {
+            ProcessRemoveComponentsFromEntity(args.Entity, args.Components);
         }
 
         public void OnEntityAddedToPool(EntityAddedEvent args)
         {
             if (!args.Entity.Components.Any()) { return; }
 
-            var applicableSystems = _systems.GetApplicableSystems(args.Entity);
-            ApplyEntityToSystems(applicableSystems, args.Entity);
+            ProcessAddComponentsToEntity(args.Entity, args.Entity.Components);
         }
 
         public void OnEntityRemovedFromPool(EntityRemovedEvent args)
         {
-            var applicableSystems = _systems.GetApplicableSystems(args.Entity);
-            applicableSystems.ForEachRun(x => RemoveSubscription(x, args.Entity));
+            ProcessRemoveComponentsFromEntity(args.Entity, args.Entity.Components);
         }
 
         private void ApplyEntityToSystems(IEnumerable<ISystem> systems, IEntity entity)

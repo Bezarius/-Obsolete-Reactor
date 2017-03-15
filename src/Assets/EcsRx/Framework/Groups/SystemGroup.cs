@@ -13,12 +13,23 @@ namespace EcsRx.Groups
             TargettedComponents = targettedComponents;
         }
 
+        public override bool Equals(object obj)
+        {
+            return obj != null && this.GetHashCode() == obj.GetHashCode();
+        }
+
         public override int GetHashCode()
         {
+            var hash = 0;
             unchecked
             {
-                return TargettedComponents.Aggregate(0, (current, t) => (current * 397) ^ t.GetHashCode());
+                foreach (var component in TargettedComponents)
+                {
+                    var cHash = component.GetHashCode();
+                    hash = (hash*397) ^ cHash;
+                }
             }
+            return hash;
         }
     }
 }

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using EcsRx.Components;
 using EcsRx.Events;
-using EcsRx.Extensions;
-using UniRx;
 
 namespace EcsRx.Entities
 {
@@ -63,16 +61,30 @@ namespace EcsRx.Entities
             RemoveComponent(component);
         }
 
+        private void RemoveComponents(IEnumerable<IComponent> components)
+        {
+            foreach (var component in components)
+            {
+                if (!_components.ContainsKey(component.GetType())) { continue; }
+
+                var disposable = component as IDisposable;
+                if (disposable != null)
+                { disposable.Dispose(); }
+
+                _components.Remove(component.GetType());
+            }
+            EventSystem.Publish(new ComponentsRemovedEvent(this, components));
+        }
+
         public void RemoveAllComponents(Func<IComponent, bool> func)
         {
             var components = Components.Where(func).ToArray();
-            components.ForEachRun(RemoveComponent);
+            RemoveComponents(components);
         }
 
         public void RemoveAllComponents()
         {
-            var components = Components.ToArray();
-            components.ForEachRun(RemoveComponent);
+            RemoveComponents(Components);
         }
 
         public bool HasComponent<T>() where T : class, IComponent
