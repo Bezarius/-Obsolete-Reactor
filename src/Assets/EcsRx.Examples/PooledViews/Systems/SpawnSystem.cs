@@ -29,7 +29,7 @@ namespace Assets.EcsRx.Examples.PooledViews.Systems
         {
             var viewComponent = entity.GetComponent<ViewComponent>();
             var blueprint = new SelfDestructBlueprint(viewComponent.View.transform.position);
-            _defaultPool.CreateEntity(blueprint);
+            _defaultPool.CreateEntity(blueprint); //todo: optimize 68.5%
         }
     }
 }

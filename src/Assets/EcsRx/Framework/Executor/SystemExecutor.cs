@@ -122,7 +122,7 @@ namespace EcsRx.Systems.Executor
                 }
             }
 
-            ApplyEntityToSystems(systems, entity);
+            ApplyEntityToSystems(systems, entity); // todo: optimize
         }
 
         private void ProcessRemoveComponentsFromEntity(IEntity entity, IEnumerable<IComponent> components)
@@ -206,7 +206,7 @@ namespace EcsRx.Systems.Executor
                 .OrderByPriority()
                 .ForEachRun(x =>
                 {
-                    var subscription = ReactToEntitySystemHandler.ProcessEntity(x, entity);
+                    var subscription = ReactToEntitySystemHandler.ProcessEntity(x, entity); // todo: optimize - 69%
                     _systemSubscriptions[x].Add(subscription);
                 });
 

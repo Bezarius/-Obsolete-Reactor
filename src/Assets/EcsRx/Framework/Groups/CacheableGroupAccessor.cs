@@ -70,8 +70,10 @@ namespace EcsRx.Groups
 
         public void OnEntityRemovedFromPool(EntityRemovedEvent args)
         {
-            if(CachedEntities.Contains(args.Entity))
-            { CachedEntities.Remove(args.Entity); }
+            if (CachedEntities.Contains(args.Entity))
+            {
+                CachedEntities.Remove(args.Entity);
+            }
         }
 
         public void Dispose()

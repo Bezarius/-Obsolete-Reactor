@@ -90,6 +90,11 @@ namespace EcsRx.Entities
             RemoveComponents(Components);
         }
 
+        public T GetComponent<T>(Type t) where T : class, IComponent
+        {
+            return _components[t] as T;
+        }
+
         public bool HasComponent<T>() where T : class, IComponent
         { return _components.ContainsKey(typeof(T)); }
 
@@ -102,7 +107,9 @@ namespace EcsRx.Entities
         }
 
         public T GetComponent<T>() where T : class, IComponent
-        { return _components[typeof(T)] as T; }
+        {
+            return _components[typeof(T)] as T;
+        }
 
         public void Dispose()
         {

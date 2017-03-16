@@ -8,7 +8,7 @@ namespace Assets.EcsRx.Unity.ViewPooling
 {
     public class ViewPool : IViewPool
     {
-        private readonly IList<ViewObjectContainer> _pooledObjects = new List<ViewObjectContainer>();
+        private readonly Stack<GameObject> _pooledObjects = new Stack<GameObject>();
         private readonly IInstantiator _instantiator;
 
         public GameObject Prefab { get; private set; }
@@ -27,47 +27,42 @@ namespace Assets.EcsRx.Unity.ViewPooling
             {
                 var newInstance = _instantiator.InstantiatePrefab(Prefab);
                 newInstance.SetActive(false);
-                var objectContainer = new ViewObjectContainer(newInstance);
-                _pooledObjects.Add(objectContainer);
+                _pooledObjects.Push(newInstance);
             }
         }
 
         public void DeAllocate(int dellocationCount)
         {
-            _pooledObjects.Where(x => !x.IsInUse)
+            _pooledObjects
                 .Take(dellocationCount)
                 .ToArray()
                 .ForEachRun(x =>
                 {
-                    _pooledObjects.Remove(x);
-                    Object.Destroy(x.ViewObject);
+                    _pooledObjects.Pop();
+                    Object.Destroy(x);
                 });
         }
 
         public GameObject AllocateInstance()
         {
-            var availableViewObject = _pooledObjects.FirstOrDefault(x => !x.IsInUse);
-            if (availableViewObject == null)
+            if (_pooledObjects.Count == 0)
             {
                 PreAllocate(IncrementSize);
-                availableViewObject = _pooledObjects.First(x => !x.IsInUse);
             }
-
-            availableViewObject.IsInUse = true;
-            return availableViewObject.ViewObject;
+            var availableGameObject = _pooledObjects.Pop();
+            availableGameObject.SetActive(true);
+            return availableGameObject;
         }
         
         public void ReleaseInstance(GameObject instance)
         {
-            var container = _pooledObjects.FirstOrDefault(x => x.ViewObject == instance);
-            if(container == null) { return; }
-
-            container.IsInUse = false;
-            var gameObject = container.ViewObject;
-            gameObject.SetActive(false);
+            _pooledObjects.Push(instance);
+            instance.SetActive(false);
         }
 
         public void EmptyPool()
-        { _pooledObjects.Clear(); }
+        {
+            _pooledObjects.Clear();
+        }
     }
 }

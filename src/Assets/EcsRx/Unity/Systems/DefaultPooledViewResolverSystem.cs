@@ -34,7 +34,6 @@ namespace EcsRx.Unity.Systems
             var entityView = viewToAllocate.GetComponent<EntityView>();
             entityView.Entity = entity;
             entityView.Pool = pool;
-            viewToAllocate.SetActive(true);
             return viewToAllocate;
         }
     }

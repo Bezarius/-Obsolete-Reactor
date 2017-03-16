@@ -1,4 +1,6 @@
-﻿using EcsRx.Blueprints;
+﻿using System.Collections.Generic;
+using EcsRx.Blueprints;
+using EcsRx.Components;
 using EcsRx.Entities;
 using EcsRx.Unity.Components;
 using UnityEngine;
@@ -23,9 +25,8 @@ namespace Assets.EcsRx.Examples.PooledViews.Blueprints
                 Lifetime = Random.Range(_minLifetime, _maxLifetime),
                 StartingPosition = _startPosition
             };
-
-            entity.AddComponent(selfDestructComponent);
-            entity.AddComponent<ViewComponent>();
+            var componetns = new List<IComponent> {selfDestructComponent, new ViewComponent()};
+            entity.AddComponents(componetns);
         }
     }
 }

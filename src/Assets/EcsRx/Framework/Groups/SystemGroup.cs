@@ -18,18 +18,22 @@ namespace EcsRx.Groups
             return obj != null && this.GetHashCode() == obj.GetHashCode();
         }
 
+        private int _hash = 0;
+
         public override int GetHashCode()
         {
-            var hash = 0;
-            unchecked
+            if (_hash == 0)
             {
-                foreach (var component in TargettedComponents)
+                unchecked
                 {
-                    var cHash = component.GetHashCode();
-                    hash = (hash*397) ^ cHash;
+                    foreach (var component in TargettedComponents)
+                    {
+                        var cHash = component.GetHashCode();
+                        _hash = (_hash * 397) ^ cHash;
+                    }
                 }
             }
-            return hash;
+            return _hash;
         }
     }
 }

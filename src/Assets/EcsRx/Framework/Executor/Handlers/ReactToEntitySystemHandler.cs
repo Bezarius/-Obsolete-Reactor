@@ -32,7 +32,9 @@ namespace EcsRx.Systems.Executor.Handlers
                     {
                         var groupPredicate = system.TargetGroup as IHasPredicate;
                         if (groupPredicate.CanProcessEntity(x))
-                        {  system.Execute(x); }
+                        {
+                            system.Execute(x);
+                        }
                         return;
                     }
 

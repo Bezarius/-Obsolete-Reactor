@@ -10,11 +10,15 @@ namespace Assets.EcsRx.Examples.PooledViews.Systems
 {
     public class SelfDestructionSystem : IReactToEntitySystem
     {
-        public IGroup TargetGroup { get { return new Group(typeof(SelfDestructComponent), typeof(ViewComponent));} }
+        public IGroup TargetGroup { get; private set; }
+
         private readonly IPool _defaultPool;
 
         public SelfDestructionSystem(IPoolManager poolManager)
-        { _defaultPool = poolManager.GetPool(); }
+        {
+            TargetGroup = new Group(typeof(SelfDestructComponent), typeof(ViewComponent));
+            _defaultPool = poolManager.GetPool();
+        }
 
         public IObservable<IEntity> ReactToEntity(IEntity entity)
         {
