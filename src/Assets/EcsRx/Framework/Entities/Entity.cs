@@ -63,13 +63,16 @@ namespace EcsRx.Entities
 
         private void RemoveComponents(IEnumerable<IComponent> components)
         {
+            components = components.ToArray();
             foreach (var component in components)
             {
                 if (!_components.ContainsKey(component.GetType())) { continue; }
 
                 var disposable = component as IDisposable;
                 if (disposable != null)
-                { disposable.Dispose(); }
+                {
+                    disposable.Dispose();
+                }
 
                 _components.Remove(component.GetType());
             }
@@ -102,6 +105,8 @@ namespace EcsRx.Entities
         { return _components[typeof(T)] as T; }
 
         public void Dispose()
-        { RemoveAllComponents(); }
+        {
+            RemoveAllComponents();
+        }
     }
 }

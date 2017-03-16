@@ -67,94 +67,80 @@ namespace EcsRx.Systems.Executor
 
         private void RegisterSystemGroup()
         {
-            
+
         }
 
 
         private void ProcessAddComponentsToEntity(IEntity entity, IEnumerable<IComponent> components)
         {
             // todo: add checks
-            try
+            IEnumerable<ISystem> systems;
+
+            var entityTypes = entity.Components.Select(x => x.GetType()).ToArray();
+            var entityGroupKey = new SystemGroupKey(entityTypes);
+
+            if (!_systemGroups.ContainsKey(entityGroupKey))
             {
-                IEnumerable<ISystem> systems;
+                // add new system group
+                var applicableSystems = _systems.GetApplicableSystems(entity).ToList();
 
-                var entityTypes = entity.Components.Select(x => x.GetType()).ToArray();
-                var entityGroupKey = new SystemGroupKey(entityTypes);
+                _systemGroups.Add(entityGroupKey, applicableSystems);
 
-                if (!_systemGroups.ContainsKey(entityGroupKey))
+                if (applicableSystems.Count == 0)
+                    return;
+
+                if (entityTypes.Length == components.Count())
                 {
-                    // add new system group
-                    var applicableSystems = _systems.GetApplicableSystems(entity).ToList();
-                    if (applicableSystems.Count == 0)
-                        return;
-
-                    _systemGroups.Add(entityGroupKey, applicableSystems);
-
-                    if (entityTypes.Length == components.Count())
-                    {
-                        systems = applicableSystems;
-                    }
-                    else
-                    {
-                        var effectedSystems = new List<ISystem>();
-                        foreach (var component in components)
-                        {
-                            effectedSystems.AddRange(
-                                applicableSystems.Where(
-                                    x => x.TargetGroup.TargettedComponents.Contains(component.GetType())));
-                        }
-                        systems = effectedSystems;
-                    }
+                    systems = applicableSystems;
                 }
                 else
                 {
-                    // work with existed system group
-                    var prevComponentsTypes = entity.Components.Except(components).Select(x => x.GetType()).ToArray();
-                    if (prevComponentsTypes.Length > 0)
+                    var effectedSystems = new List<ISystem>();
+                    foreach (var component in components)
                     {
-                        var prevEntityGroupKey = new SystemGroupKey(prevComponentsTypes);
-                        var currentSystems = _systemGroups[entityGroupKey];
-                        List<ISystem> prevSystems;
-                        if (!_systemGroups.ContainsKey(prevEntityGroupKey))
-                        {
-                            var applicableSystems = _systems.GetApplicableSystems(entity).ToList();
-                            var effectedSystems = new List<ISystem>();
-                            foreach (var component in components)
-                            {
-                                effectedSystems.AddRange(
-                                    applicableSystems.Where(
-                                        x => x.TargetGroup.TargettedComponents.Contains(component.GetType())));
-                            }
-                            prevSystems = effectedSystems;
-                        }
-                        else
-                        {
-                            prevSystems = _systemGroups[prevEntityGroupKey];
-                        }
-
-                        systems = currentSystems.Except(prevSystems).ToList();
+                        effectedSystems.AddRange(
+                            applicableSystems.Where(
+                                x => x.TargetGroup.TargettedComponents.Contains(component.GetType())));
                     }
-                    else
-                    {
-                        systems = _systemGroups[entityGroupKey];
-                    }
+                    systems = effectedSystems;
                 }
-
-                ApplyEntityToSystems(systems, entity);
             }
-            catch (Exception e)
+            else
             {
-                Debug.WriteLine(e);
+                // work with existed system group
+                var prevComponentsTypes = entity.Components.Except(components).Select(x => x.GetType()).ToArray();
+                if (prevComponentsTypes.Length > 0)
+                {
+                    var prevEntityGroupKey = new SystemGroupKey(prevComponentsTypes);
+                    var currentSystems = _systemGroups[entityGroupKey];
+                    var prevSystems = _systemGroups[prevEntityGroupKey];
+                    systems = currentSystems.Except(prevSystems).ToList();
+                }
+                else
+                {
+                    systems = _systemGroups[entityGroupKey];
+                }
             }
+
+            ApplyEntityToSystems(systems, entity);
         }
 
         private void ProcessRemoveComponentsFromEntity(IEntity entity, IEnumerable<IComponent> components)
         {
+            IEnumerable<ISystem> effectedSystems;
             var entityTypes = entity.Components.Select(x => x.GetType()).ToArray();
-            var entityGroupKey = new SystemGroupKey(entityTypes);
             var prevComponentsTypes = entity.Components.Union(components).Select(x => x.GetType()).ToArray();
             var prevEntityGroupKey = new SystemGroupKey(prevComponentsTypes);
-            var effectedSystems = _systemGroups[entityGroupKey].Except(_systemGroups[prevEntityGroupKey]);
+            
+            if (entityTypes.Length > 0)
+            {
+                var entityGroupKey = new SystemGroupKey(entityTypes);
+                effectedSystems = _systemGroups[entityGroupKey].Except(_systemGroups[prevEntityGroupKey]);
+            }
+            else
+            {
+                effectedSystems = _systemGroups[prevEntityGroupKey];
+            }
 
             foreach (var effectedSystem in effectedSystems)
             {
@@ -195,14 +181,14 @@ namespace EcsRx.Systems.Executor
 
         public void OnEntityAddedToPool(EntityAddedEvent args)
         {
-            if (!args.Entity.Components.Any()) { return; }
+            //if (!args.Entity.Components.Any()) { return; }
 
-            ProcessAddComponentsToEntity(args.Entity, args.Entity.Components);
+            //ProcessAddComponentsToEntity(args.Entity, args.Entity.Components);
         }
 
         public void OnEntityRemovedFromPool(EntityRemovedEvent args)
         {
-            ProcessRemoveComponentsFromEntity(args.Entity, args.Entity.Components);
+            //ProcessRemoveComponentsFromEntity(args.Entity, args.Entity.Components);
         }
 
         private void ApplyEntityToSystems(IEnumerable<ISystem> systems, IEntity entity)

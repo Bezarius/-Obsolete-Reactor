@@ -30,7 +30,6 @@ namespace Assets.EcsRx.Examples.PooledViews.ViewResolvers
             var selfDestructComponent = entity.GetComponent<SelfDestructComponent>();
             var allocatedView = base.AllocateView(entity, pool);
             allocatedView.transform.position = selfDestructComponent.StartingPosition;
-            Debug.Log("Created @ " + allocatedView.transform.position);
             return allocatedView;
         }
     }

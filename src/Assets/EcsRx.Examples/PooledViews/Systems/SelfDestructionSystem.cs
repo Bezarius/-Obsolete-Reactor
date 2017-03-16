@@ -23,6 +23,8 @@ namespace Assets.EcsRx.Examples.PooledViews.Systems
         }
 
         public void Execute(IEntity entity)
-        { _defaultPool.RemoveEntity(entity); }
+        {
+            _defaultPool.RemoveEntity(entity);
+        }
     }
 }
