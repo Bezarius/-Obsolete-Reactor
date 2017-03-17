@@ -1,5 +1,4 @@
 ﻿using System;
-using EcsRx.Entities;
 
 namespace EcsRx.Systems.Executor
 {

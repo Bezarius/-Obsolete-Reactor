@@ -52,7 +52,6 @@ namespace EcsRx.Unity.MonoBehaviours
         {
             var entityBinding = gameObject.AddComponent<EntityView>();
             entityBinding.Entity = entity;
-            entityBinding.Pool = pool;
         }
 
         private void SetupEntityComponents(IEntity entity)

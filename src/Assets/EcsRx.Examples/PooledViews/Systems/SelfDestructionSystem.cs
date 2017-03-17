@@ -8,7 +8,7 @@ using UniRx;
 
 namespace Assets.EcsRx.Examples.PooledViews.Systems
 {
-    public class SelfDestructionSystem : IReactToEntitySystem
+    public class SelfDestructionSystem : IEntityReactionSystem
     {
         public IGroup TargetGroup { get; private set; }
 
@@ -20,10 +20,10 @@ namespace Assets.EcsRx.Examples.PooledViews.Systems
             _defaultPool = poolManager.GetPool();
         }
 
-        public IObservable<IEntity> ReactToEntity(IEntity entity)
+        public IObservable<IEntity> EntityReaction(IEntity entity)
         {
             var selfDestructComponent = entity.GetComponent<SelfDestructComponent>();
-            return Observable.Interval(TimeSpan.FromSeconds(selfDestructComponent.Lifetime)).First().Select(x => entity);
+            return Observable.Interval(TimeSpan.FromSeconds(selfDestructComponent.Lifetime)).Select(x => entity);
         }
 
         public void Execute(IEntity entity)

@@ -7,7 +7,7 @@ using UniRx;
 
 namespace EcsRx.Systems.Executor.Handlers
 {
-    public class ReactToEntitySystemHandler : IReactToEntitySystemHandler
+    public class ReactToEntitySystemHandler : IEntityReactionSystemHandler
     {
         public IPoolManager PoolManager { get; private set; }
 
@@ -16,16 +16,16 @@ namespace EcsRx.Systems.Executor.Handlers
             PoolManager = poolManager;
         }
 
-        public IEnumerable<SubscriptionToken> Setup(IReactToEntitySystem system)
+        public IEnumerable<SubscriptionToken> Setup(IEntityReactionSystem system)
         {
             var accessor = PoolManager.CreateGroupAccessor(system.TargetGroup);
             return accessor.Entities.ForEachRun(x => ProcessEntity(system, x));
         }
 
-        public SubscriptionToken ProcessEntity(IReactToEntitySystem system, IEntity entity)
+        public SubscriptionToken ProcessEntity(IEntityReactionSystem system, IEntity entity)
         {
             var hasEntityPredicate = system.TargetGroup is IHasPredicate;
-            var subscription = system.ReactToEntity(entity)
+            var subscription = system.EntityReaction(entity)
                 .Subscribe(x =>
                 {
                     if (hasEntityPredicate)

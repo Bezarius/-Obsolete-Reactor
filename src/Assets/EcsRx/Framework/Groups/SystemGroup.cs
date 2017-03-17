@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace EcsRx.Groups
 {
@@ -8,7 +7,7 @@ namespace EcsRx.Groups
     {
         public IEnumerable<Type> TargettedComponents { get; private set; }
 
-        public SystemGroupKey(params Type[] targettedComponents)
+        public SystemGroupKey(IEnumerable<Type> targettedComponents)
         {
             TargettedComponents = targettedComponents;
         }
@@ -17,6 +16,7 @@ namespace EcsRx.Groups
         {
             return obj != null && this.GetHashCode() == obj.GetHashCode();
         }
+
 
         private int _hash = 0;
 

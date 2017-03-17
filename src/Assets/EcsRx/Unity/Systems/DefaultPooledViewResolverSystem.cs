@@ -21,19 +21,16 @@ namespace EcsRx.Unity.Systems
         protected override void RecycleView(GameObject viewToRecycle)
         {
             viewToRecycle.transform.parent = null;
-
             var entityView = viewToRecycle.GetComponent<EntityView>();
             entityView.Entity = null;
-            entityView.Pool = null;
             ViewPool.ReleaseInstance(viewToRecycle);
         }
 
-        protected override GameObject AllocateView(IEntity entity, IPool pool)
+        protected override GameObject AllocateView(IEntity entity)
         {
             var viewToAllocate = ViewPool.AllocateInstance();
             var entityView = viewToAllocate.GetComponent<EntityView>();
             entityView.Entity = entity;
-            entityView.Pool = pool;
             return viewToAllocate;
         }
     }

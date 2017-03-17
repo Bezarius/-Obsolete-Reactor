@@ -35,15 +35,14 @@ namespace EcsRx.Unity.Systems
         
         protected abstract GameObject ResolvePrefabTemplate();
         protected abstract void RecycleView(GameObject viewToRecycle);
-        protected abstract GameObject AllocateView(IEntity entity, IPool pool);
+        protected abstract GameObject AllocateView(IEntity entity);
 
         public virtual void Setup(IEntity entity)
         {
             var viewComponent = entity.GetComponent<ViewComponent>();
             if (viewComponent.View != null) { return; }
 
-            var containingPool = PoolManager.GetContainingPoolFor(entity);
-            var viewObject = AllocateView(entity, containingPool);
+            var viewObject = AllocateView(entity);
             viewComponent.View = viewObject;
 
             EventSystem.Receive<EntityRemovedEvent>()

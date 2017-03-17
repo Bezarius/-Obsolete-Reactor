@@ -6,20 +6,22 @@ using EcsRx.Pools;
 using EcsRx.Systems;
 using EcsRx.Unity.Components;
 using UniRx;
-using UnityEngine;
 
 namespace Assets.EcsRx.Examples.PooledViews.Systems
 {
-    public class SpawnSystem : IReactToEntitySystem
+    public class SpawnSystem : IEntityReactionSystem
     {
         private readonly IPool _defaultPool;
 
-        public IGroup TargetGroup { get { return new Group(typeof(SpawnerComponent), typeof(ViewComponent));} }
+        public IGroup TargetGroup { get; private set; }
 
         public SpawnSystem(IPoolManager poolManager)
-        { _defaultPool = poolManager.GetPool(); }
+        {
+            TargetGroup = new Group(typeof(SpawnerComponent), typeof(ViewComponent));
+            _defaultPool = poolManager.GetPool();
+        }
 
-        public IObservable<IEntity> ReactToEntity(IEntity entity)
+        public IObservable<IEntity> EntityReaction(IEntity entity)
         {
             var spawnComponent = entity.GetComponent<SpawnerComponent>();
             return Observable.Interval(TimeSpan.FromSeconds(spawnComponent.SpawnRate)).Select(x => entity);

@@ -15,9 +15,8 @@ namespace Assets.EcsRx.Examples.GameObjectLinking
         {
             var defaultPool = PoolManager.GetPool();
             var entity = defaultPool.CreateEntity();
-
             var existingGameObject = GameObject.Find("ExistingGameObject");
-            existingGameObject.LinkEntity(entity, defaultPool);
+            existingGameObject.LinkEntity(entity);
         }
     }
 }

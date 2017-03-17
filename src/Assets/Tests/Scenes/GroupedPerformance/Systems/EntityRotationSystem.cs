@@ -8,11 +8,11 @@ using UnityEngine;
 
 namespace Assets.Tests.Scenes.GroupedPerformance.Systems
 {
-    public class EntityRotationSystem : IReactToEntitySystem
+    public class EntityRotationSystem : IEntityReactionSystem
     {
         public IGroup TargetGroup { get { return new Group(typeof(ViewComponent), typeof(RotationComponent)); } }
 
-        public IObservable<IEntity> ReactToEntity(IEntity entity)
+        public IObservable<IEntity> EntityReaction(IEntity entity)
         {
             return Observable.EveryUpdate().Select(x => entity);
         }

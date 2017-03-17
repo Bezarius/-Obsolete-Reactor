@@ -1,5 +1,4 @@
 using EcsRx.Entities;
-using EcsRx.Events;
 using UniRx;
 
 namespace EcsRx.Systems

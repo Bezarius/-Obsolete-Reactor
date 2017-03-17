@@ -21,9 +21,9 @@ namespace EcsRx.Tests
         {
             var mockPoolManager = Substitute.For<IPoolManager>();
             var mockEntity = Substitute.For<IEntity>();
-            var mockSystem = Substitute.For<IReactToEntitySystem>();
+            var mockSystem = Substitute.For<IEntityReactionSystem>();
             var mockSubscription = Substitute.For<IObservable<IEntity>>();
-            mockSystem.ReactToEntity(mockEntity).Returns(mockSubscription);
+            mockSystem.EntityReaction(mockEntity).Returns(mockSubscription);
 
             var handler = new ReactToEntitySystemHandler(mockPoolManager);
             var subscriptionToken = handler.ProcessEntity(mockSystem, mockEntity);
@@ -42,11 +42,11 @@ namespace EcsRx.Tests
             var mockPoolManager = Substitute.For<IPoolManager>();
             mockPoolManager.CreateGroupAccessor(dummyGroup).Returns(new GroupAccessor(null, new[] {mockEntity}));
 
-            var mockSystem = Substitute.For<IReactToEntitySystem>();
+            var mockSystem = Substitute.For<IEntityReactionSystem>();
             mockSystem.TargetGroup.Returns(dummyGroup);
 
             var mockSubscription = Substitute.For<IObservable<IEntity>>();
-            mockSystem.ReactToEntity(mockEntity).Returns(mockSubscription);
+            mockSystem.EntityReaction(mockEntity).Returns(mockSubscription);
 
             var handler = new ReactToEntitySystemHandler(mockPoolManager);
 

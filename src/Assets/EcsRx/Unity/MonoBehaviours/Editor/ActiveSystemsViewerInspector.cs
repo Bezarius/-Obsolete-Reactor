@@ -52,7 +52,7 @@ namespace EcsRx.Unity.Helpers
 
             EditorGUILayout.TextField("Entity Systems");
             EditorGUILayout.Space();
-            foreach (var system in executor.Systems.OfType<IReactToEntitySystem>())
+            foreach (var system in executor.Systems.OfType<IEntityReactionSystem>())
             {
                 EditorGUILayout.BeginVertical();
                 EditorGUILayout.LabelField("System: " + system.GetType().Name);

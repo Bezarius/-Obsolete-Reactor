@@ -37,7 +37,9 @@ namespace EcsRx.Unity.Systems
         }
 
         public virtual void DestroyView(GameObject view)
-        { Object.Destroy(view); }
+        {
+            Object.Destroy(view);
+        }
         
         public virtual void SetupView(IEntity entity, Func<IEntity, GameObject> viewResolver)
         {
@@ -52,15 +54,13 @@ namespace EcsRx.Unity.Systems
             {
                 entityBinding = viewObject.AddComponent<EntityView>();
                 entityBinding.Entity = entity;
-
-                entityBinding.Pool = PoolManager.GetContainingPoolFor(entity);
             }
 
             IDisposable viewSubscription = null;
             if (viewComponent.DestroyWithView)
             {
                 viewSubscription = viewObject.OnDestroyAsObservable()
-                    .Subscribe(x => entityBinding.Pool.RemoveEntity(entity))
+                    .Subscribe(x => entityBinding.Entity.Pool.RemoveEntity(entity))
                     .AddTo(viewObject);
             }
 

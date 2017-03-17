@@ -25,10 +25,10 @@ namespace Assets.EcsRx.Examples.PooledViews.ViewResolvers
         protected override GameObject ResolvePrefabTemplate()
         { return Resources.Load("PooledPrefab") as GameObject; }
 
-        protected override GameObject AllocateView(IEntity entity, IPool pool)
+        protected override GameObject AllocateView(IEntity entity)
         {
             var selfDestructComponent = entity.GetComponent<SelfDestructComponent>();
-            var allocatedView = base.AllocateView(entity, pool);
+            var allocatedView = base.AllocateView(entity);
             allocatedView.transform.position = selfDestructComponent.StartingPosition;
             return allocatedView;
         }

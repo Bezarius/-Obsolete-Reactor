@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using EcsRx.Components;
+using EcsRx.Pools;
 
 namespace EcsRx.Entities
 {
     public interface IEntity : IDisposable
     {
         Guid Id { get; }
+        IPool Pool { get; }
+
         IEnumerable<IComponent> Components { get; }
 
         IComponent AddComponent(IComponent component);

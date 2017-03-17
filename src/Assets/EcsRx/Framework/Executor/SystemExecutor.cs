@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using EcsRx.Components;
 using EcsRx.Entities;
@@ -25,15 +24,21 @@ namespace EcsRx.Systems.Executor
         public IPoolManager PoolManager { get; private set; }
         public IEnumerable<ISystem> Systems { get { return _systems; } }
 
-        public IReactToEntitySystemHandler ReactToEntitySystemHandler { get; private set; }
+        public IEntityReactionSystemHandler ReactToEntitySystemHandler { get; private set; }
         public IReactToGroupSystemHandler ReactToGroupSystemHandler { get; private set; }
         public ISetupSystemHandler SetupSystemHandler { get; private set; }
         public IReactToDataSystemHandler ReactToDataSystemHandler { get; private set; }
+        public IEntityToEntityReactionSystemHandler ReactToComponentSystemHandler { get; private set; }
         public IManualSystemHandler ManualSystemHandler { get; private set; }
 
-        public SystemExecutor(IPoolManager poolManager, IEventSystem eventSystem,
-            IReactToEntitySystemHandler reactToEntitySystemHandler, IReactToGroupSystemHandler reactToGroupSystemHandler,
-            ISetupSystemHandler setupSystemHandler, IReactToDataSystemHandler reactToDataSystemHandler,
+        public SystemExecutor(
+            IPoolManager poolManager,
+            IEventSystem eventSystem,
+            IEntityReactionSystemHandler reactToEntitySystemHandler,
+            IReactToGroupSystemHandler reactToGroupSystemHandler,
+            ISetupSystemHandler setupSystemHandler,
+            IReactToDataSystemHandler reactToDataSystemHandler,
+            IEntityToEntityReactionSystemHandler reactToComponentSystemHandler,
             IManualSystemHandler manualSystemHandler)
         {
             PoolManager = poolManager;
@@ -42,6 +47,7 @@ namespace EcsRx.Systems.Executor
             ReactToGroupSystemHandler = reactToGroupSystemHandler;
             SetupSystemHandler = setupSystemHandler;
             ReactToDataSystemHandler = reactToDataSystemHandler;
+            ReactToComponentSystemHandler = reactToComponentSystemHandler;
             ManualSystemHandler = manualSystemHandler;
 
             var addEntitySubscription = EventSystem.Receive<EntityAddedEvent>().Subscribe(OnEntityAddedToPool);
@@ -74,9 +80,9 @@ namespace EcsRx.Systems.Executor
         private void ProcessAddComponentsToEntity(IEntity entity, IEnumerable<IComponent> components)
         {
             // todo: add checks
-            IEnumerable<ISystem> systems;
+            List<ISystem> systems;
 
-            var entityTypes = entity.Components.Select(x => x.GetType()).ToArray();
+            var entityTypes = entity.Components.Select(x => x.GetType());
             var entityGroupKey = new SystemGroupKey(entityTypes);
 
             if (!_systemGroups.ContainsKey(entityGroupKey))
@@ -89,7 +95,7 @@ namespace EcsRx.Systems.Executor
                 if (applicableSystems.Count == 0)
                     return;
 
-                if (entityTypes.Length == components.Count())
+                if (entityTypes.Count() == components.Count())
                 {
                     systems = applicableSystems;
                 }
@@ -108,12 +114,12 @@ namespace EcsRx.Systems.Executor
             else
             {
                 // work with existed system group
-                var prevComponentsTypes = entity.Components.Except(components).Select(x => x.GetType()).ToArray();
-                if (prevComponentsTypes.Length > 0)
+                var prevEntityGroupKey = new SystemGroupKey(entity.Components.Except(components)
+                    .Select(x => x.GetType()));
+                if (_systemGroups.ContainsKey(prevEntityGroupKey))
                 {
-                    var prevEntityGroupKey = new SystemGroupKey(prevComponentsTypes);
-                    var currentSystems = _systemGroups[entityGroupKey];
                     var prevSystems = _systemGroups[prevEntityGroupKey];
+                    var currentSystems = _systemGroups[entityGroupKey];
                     systems = currentSystems.Except(prevSystems).ToList();
                 }
                 else
@@ -128,11 +134,11 @@ namespace EcsRx.Systems.Executor
         private void ProcessRemoveComponentsFromEntity(IEntity entity, IEnumerable<IComponent> components)
         {
             IEnumerable<ISystem> effectedSystems;
-            var entityTypes = entity.Components.Select(x => x.GetType()).ToArray();
-            var prevComponentsTypes = entity.Components.Union(components).Select(x => x.GetType()).ToArray();
+            var entityTypes = entity.Components.Select(x => x.GetType());
+            var prevComponentsTypes = entity.Components.Union(components).Select(x => x.GetType());
             var prevEntityGroupKey = new SystemGroupKey(prevComponentsTypes);
             
-            if (entityTypes.Length > 0)
+            if (entityTypes.Any())
             {
                 var entityGroupKey = new SystemGroupKey(entityTypes);
                 effectedSystems = _systemGroups[entityGroupKey].Except(_systemGroups[prevEntityGroupKey]);
@@ -150,12 +156,16 @@ namespace EcsRx.Systems.Executor
                 }
 
                 // todo: optimize. mb to dict?
-                var subscriptionTokens = _systemSubscriptions[effectedSystem]
-                    .Where(x => x.AssociatedObject == entity)
-                    .ToList();
+                var subscriptionToken = _systemSubscriptions[effectedSystem]
+                    .FirstOrDefault(x => x.AssociatedObject == entity);
 
-                _systemSubscriptions[effectedSystem].RemoveAll(subscriptionTokens);
-                subscriptionTokens.DisposeAll();
+                if (subscriptionToken != null)
+                {
+                    _systemSubscriptions[effectedSystem].Remove(subscriptionToken);
+                    subscriptionToken.Disposable.Dispose();
+                }
+                //_systemSubscriptions[effectedSystem].RemoveAll(subscriptionTokens);
+                //subscriptionTokens.DisposeAll();
             }
         }
 
@@ -191,27 +201,35 @@ namespace EcsRx.Systems.Executor
             //ProcessRemoveComponentsFromEntity(args.Entity, args.Entity.Components);
         }
 
-        private void ApplyEntityToSystems(IEnumerable<ISystem> systems, IEntity entity)
+        private void ApplyEntityToSystems(List<ISystem> systems, IEntity entity)
         {
             systems.OfType<ISetupSystem>()
-                .OrderByPriority()
+                .OrderByPriority() //todo: optimize
                 .ForEachRun(x =>
                 {
                     var possibleSubscription = SetupSystemHandler.ProcessEntity(x, entity);
                     if (possibleSubscription != null)
-                    { _systemSubscriptions[x].Add(possibleSubscription); }
+                    {
+                        _systemSubscriptions[x].Add(possibleSubscription);
+                    }
                 });
 
-            systems.OfType<IReactToEntitySystem>()
-                .OrderByPriority()
+            systems.OfType<IEntityReactionSystem>()
+                //.OrderByPriority()
                 .ForEachRun(x =>
                 {
                     var subscription = ReactToEntitySystemHandler.ProcessEntity(x, entity); // todo: optimize - 69%
                     _systemSubscriptions[x].Add(subscription);
                 });
 
+            systems.OfType<IEntityToEntityReactionSystem>().ForEachRun(x =>
+            {
+                var subscription = ReactToComponentSystemHandler.ProcessEntity(x, entity);
+                _systemSubscriptions[x].Add(subscription);
+            });
+
             systems.Where(x => x.IsReactiveDataSystem())
-                .OrderByPriority()
+                //.OrderByPriority()
                 .ForEachRun(x =>
                 {
                     var subscription = ReactToDataSystemHandler.ProcessEntityWithoutType(x, entity);
@@ -235,7 +253,9 @@ namespace EcsRx.Systems.Executor
             _systems.Remove(system);
 
             if (system is IManualSystem)
-            { ManualSystemHandler.Stop(system as IManualSystem); }
+            {
+                ManualSystemHandler.Stop(system as IManualSystem);
+            }
 
             if (_systemSubscriptions.ContainsKey(system))
             {
@@ -261,9 +281,15 @@ namespace EcsRx.Systems.Executor
                 subscriptionList.Add(subscription);
             }
 
-            if (system is IReactToEntitySystem)
+            if (system is IEntityReactionSystem)
             {
-                var subscriptions = ReactToEntitySystemHandler.Setup(system as IReactToEntitySystem);
+                var subscriptions = ReactToEntitySystemHandler.Setup(system as IEntityReactionSystem);
+                subscriptionList.AddRange(subscriptions);
+            }
+
+            if (system is IEntityToEntityReactionSystem)
+            {
+                var subscriptions = ReactToComponentSystemHandler.Setup(system as IEntityToEntityReactionSystem);
                 subscriptionList.AddRange(subscriptions);
             }
 
@@ -274,7 +300,9 @@ namespace EcsRx.Systems.Executor
             }
 
             if (system is IManualSystem)
-            { ManualSystemHandler.Start(system as IManualSystem); }
+            {
+                ManualSystemHandler.Start(system as IManualSystem);
+            }
 
             _systemSubscriptions.Add(system, subscriptionList);
         }

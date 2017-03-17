@@ -1,6 +1,5 @@
 ﻿using System;
 using EcsRx.Entities;
-using EcsRx.Pools;
 using EcsRx.Unity.Components;
 using EcsRx.Unity.MonoBehaviours;
 using UnityEngine;
@@ -9,7 +8,7 @@ namespace Assets.EcsRx.Unity.Extensions
 {
     public static class GameObjectExtensions
     {
-        public static void LinkEntity(this GameObject gameObject, IEntity entity, IPool withinPool)
+        public static void LinkEntity(this GameObject gameObject, IEntity entity)
         {
             if(gameObject.GetComponent<EntityView>())
             { throw new Exception("GameObject already has an EntityView monobehaviour applied"); }
@@ -22,7 +21,6 @@ namespace Assets.EcsRx.Unity.Extensions
 
             var entityViewMb = gameObject.AddComponent<EntityView>();
             entityViewMb.Entity = entity;
-            entityViewMb.Pool = withinPool;
             
             var viewComponent = entity.GetComponent<ViewComponent>();
             viewComponent.View = gameObject;

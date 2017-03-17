@@ -26,7 +26,7 @@ namespace EcsRx.Tests
             var fakeSystem = Substitute.For<ISetupSystem>();
 
             var systemExecutor = new SystemExecutor(mockPoolManager, mockEventSystem,
-                null, null, mockSetupSystemHandler, null, null);
+                null, null, mockSetupSystemHandler, null, null, null);
 
             systemExecutor.AddSystem(fakeSystem);
 
@@ -43,7 +43,7 @@ namespace EcsRx.Tests
             var fakeSystem = Substitute.For<IReactToDataSystem<int>>();
 
             var systemExecutor = new SystemExecutor(mockPoolManager, mockEventSystem,
-                null, null, null, mockReactToDataSystemHandler, null);
+                null, null, null, mockReactToDataSystemHandler, null, null);
 
             systemExecutor.AddSystem(fakeSystem);
 
@@ -56,11 +56,11 @@ namespace EcsRx.Tests
         {
             var mockPoolManager = Substitute.For<IPoolManager>();
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var mockReactToEntitySystemHandler = Substitute.For<IReactToEntitySystemHandler>();
-            var fakeSystem = Substitute.For<IReactToEntitySystem>();
+            var mockReactToEntitySystemHandler = Substitute.For<IEntityReactionSystemHandler>();
+            var fakeSystem = Substitute.For<IEntityReactionSystem>();
 
             var systemExecutor = new SystemExecutor(mockPoolManager, mockEventSystem,
-                mockReactToEntitySystemHandler, null, null, null, null);
+                mockReactToEntitySystemHandler, null, null, null, null, null);
 
             systemExecutor.AddSystem(fakeSystem);
 
@@ -77,7 +77,7 @@ namespace EcsRx.Tests
             var fakeSystem = Substitute.For<IReactToGroupSystem>();
 
             var systemExecutor = new SystemExecutor(mockPoolManager, mockEventSystem,
-                null, mockReactToGroupSystemHandler, null, null, null);
+                null, mockReactToGroupSystemHandler, null, null, null, null);
 
             systemExecutor.AddSystem(fakeSystem);
 
@@ -94,7 +94,7 @@ namespace EcsRx.Tests
             var fakeSystem = Substitute.For<ISetupSystem>();
 
             var systemExecutor = new SystemExecutor(mockPoolManager, mockEventSystem,
-                null, null, mockSetupSystemHandler, null, null);
+                null, null, mockSetupSystemHandler, null, null, null);
 
             systemExecutor.AddSystem(fakeSystem);
             systemExecutor.RemoveSystem(fakeSystem);
@@ -108,17 +108,18 @@ namespace EcsRx.Tests
         {
             var dummyGroup = new Group(typeof(TestComponentOne), typeof(TestComponentTwo));
             var mockPoolManager = Substitute.For<IPoolManager>();
+            var pool = mockPoolManager.GetPool();
             var mockEventSystem = Substitute.For<IEventSystem>();
             var mockSetupSystemHandler = Substitute.For<ISetupSystemHandler>();
             var fakeSystem = Substitute.For<ISetupSystem>();
             fakeSystem.TargetGroup.Returns(dummyGroup);
 
             var systemExecutor = new SystemExecutor(mockPoolManager, mockEventSystem,
-                null, null, mockSetupSystemHandler, null, null);
+                null, null, mockSetupSystemHandler, null, null, null);
 
             systemExecutor.AddSystem(fakeSystem);
 
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var entity = new Entity(Guid.NewGuid(), pool, mockEventSystem);
             entity.AddComponent(new TestComponentOne());
             systemExecutor.OnEntityComponentAdded(new ComponentAddedEvent(entity, new TestComponentOne()));
             
@@ -136,16 +137,17 @@ namespace EcsRx.Tests
         {
             var dummyGroup = new Group(typeof(TestComponentOne), typeof(TestComponentTwo));
             var mockPoolManager = Substitute.For<IPoolManager>();
+            var pool = mockPoolManager.GetPool();
             var mockEventSystem = Substitute.For<IEventSystem>();
             var fakeSystem = Substitute.For<ITeardownSystem>();
             fakeSystem.TargetGroup.Returns(dummyGroup);
 
             var systemExecutor = new SystemExecutor(mockPoolManager, mockEventSystem,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
 
             systemExecutor.AddSystem(fakeSystem);
 
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var entity = new Entity(Guid.NewGuid(), pool, mockEventSystem);
             entity.AddComponent(new TestComponentOne());
             entity.AddComponent(new TestComponentTwo());
             

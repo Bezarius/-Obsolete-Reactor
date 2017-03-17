@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EcsRx.Components;
 using EcsRx.Events;
+using EcsRx.Pools;
 
 namespace EcsRx.Entities
 {
@@ -13,11 +14,13 @@ namespace EcsRx.Entities
         public IEventSystem EventSystem { get; private set; }
 
         public Guid Id { get; private set; }
+        public IPool Pool { get; private set; }
         public IEnumerable<IComponent> Components { get { return _components.Values; } }
 
-        public Entity(Guid id, IEventSystem eventSystem)
+        public Entity(Guid id, IPool pool, IEventSystem eventSystem)
         {
             Id = id;
+            Pool = pool;
             EventSystem = eventSystem;
             _components = new Dictionary<Type, IComponent>();
         }

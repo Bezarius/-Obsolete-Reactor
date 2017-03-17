@@ -9,11 +9,11 @@ using Random = UnityEngine.Random;
 
 namespace Assets.EcsRx.Examples.GroupFilters.Systems
 {
-    public class RandomScoreIncrementerSystem : IReactToEntitySystem
+    public class RandomScoreIncrementerSystem : IEntityReactionSystem
     {
         public IGroup TargetGroup { get { return new HasScoreGroup(); } }
 
-        public IObservable<IEntity> ReactToEntity(IEntity entity)
+        public IObservable<IEntity> EntityReaction(IEntity entity)
         { return Observable.Interval(TimeSpan.FromSeconds(1)).Select(x => entity); }
 
         public void Execute(IEntity entity)

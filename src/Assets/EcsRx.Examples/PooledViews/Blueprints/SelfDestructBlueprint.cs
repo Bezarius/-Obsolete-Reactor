@@ -25,7 +25,12 @@ namespace Assets.EcsRx.Examples.PooledViews.Blueprints
                 Lifetime = Random.Range(_minLifetime, _maxLifetime),
                 StartingPosition = _startPosition
             };
-            var componetns = new List<IComponent> {selfDestructComponent, new ViewComponent()};
+            var componetns = new List<IComponent>
+            {
+                selfDestructComponent,
+                new ColliderComponent(),
+                new ViewComponent()
+            };
             entity.AddComponents(componetns);
         }
     }

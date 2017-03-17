@@ -3,9 +3,9 @@ using UniRx;
 
 namespace EcsRx.Systems
 {
-    public interface IReactToEntitySystem : ISystem
+    public interface IEntityReactionSystem : ISystem
     {
-        IObservable<IEntity> ReactToEntity(IEntity entity);
+        IObservable<IEntity> EntityReaction(IEntity entity);
 
         void Execute(IEntity entity);
     }

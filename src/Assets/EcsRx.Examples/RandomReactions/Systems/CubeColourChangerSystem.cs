@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Assets.EcsRx.Examples.RandomReactions.Systems
 {
-    public class CubeColourChangerSystem : IReactToEntitySystem
+    public class CubeColourChangerSystem : IEntityReactionSystem
     {
         public IGroup TargetGroup
         {
@@ -21,7 +21,7 @@ namespace Assets.EcsRx.Examples.RandomReactions.Systems
             }
         }
 
-        public IObservable<IEntity> ReactToEntity(IEntity entity)
+        public IObservable<IEntity> EntityReaction(IEntity entity)
         {
             var colorComponent = entity.GetComponent<RandomColorComponent>();
             return colorComponent.Color.DistinctUntilChanged().Select(x => entity);

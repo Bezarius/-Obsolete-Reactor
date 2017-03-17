@@ -24,14 +24,16 @@ namespace EcsRx.Pools
 
         public IEntity CreateEntity(IBlueprint blueprint = null)
         {
-            var entity = EntityFactory.Create(null);
+            var entity = EntityFactory.Create(this, null);
 
             _entities.Add(entity);
 
             EventSystem.Publish(new EntityAddedEvent(entity, this));
 
             if (blueprint != null)
-            { blueprint.Apply(entity); }
+            {
+                blueprint.Apply(entity);
+            }
 
             return entity;
         }

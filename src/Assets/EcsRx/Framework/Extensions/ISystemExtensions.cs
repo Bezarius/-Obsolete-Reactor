@@ -11,7 +11,7 @@ namespace EcsRx.Extensions
         { return new Group(componentTypes); }
 
         public static bool IsSystemReactive(this ISystem system)
-        { return system is IReactToEntitySystem || system is IReactToGroupSystem || system.IsReactiveDataSystem(); }
+        { return system is IEntityReactionSystem || system is IReactToGroupSystem || system.IsReactiveDataSystem(); }
 
         public static bool IsReactiveDataSystem(this ISystem system)
         {
