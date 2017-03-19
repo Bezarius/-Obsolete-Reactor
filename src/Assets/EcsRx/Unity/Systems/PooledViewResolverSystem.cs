@@ -1,6 +1,6 @@
+using EcsRx.Attributes;
 using EcsRx.Entities;
 using EcsRx.Events;
-using EcsRx.Extensions;
 using EcsRx.Groups;
 using EcsRx.Pools;
 using EcsRx.Systems;
@@ -11,6 +11,8 @@ using Zenject;
 
 namespace EcsRx.Unity.Systems
 {
+    
+    [Priority(1000)]
     public abstract class PooledViewResolverSystem : ISetupSystem
     {
         public IPoolManager PoolManager { get; private set; }

@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using EcsRx.Extensions;
+using EcsRx.Systems;
 
 namespace EcsRx.Groups
 {
@@ -7,9 +10,20 @@ namespace EcsRx.Groups
     {
         public IEnumerable<Type> TargettedComponents { get; private set; }
 
+        private readonly int _hash = 0;
+
         public SystemGroupKey(IEnumerable<Type> targettedComponents)
         {
             TargettedComponents = targettedComponents;
+
+            unchecked
+            {
+                foreach (var component in TargettedComponents)
+                {
+                    var cHash = component.GetHashCode();
+                    _hash = (_hash*397) ^ cHash;
+                }
+            }
         }
 
         public override bool Equals(object obj)
@@ -17,23 +31,26 @@ namespace EcsRx.Groups
             return obj != null && this.GetHashCode() == obj.GetHashCode();
         }
 
-
-        private int _hash = 0;
-
         public override int GetHashCode()
         {
-            if (_hash == 0)
-            {
-                unchecked
-                {
-                    foreach (var component in TargettedComponents)
-                    {
-                        var cHash = component.GetHashCode();
-                        _hash = (_hash * 397) ^ cHash;
-                    }
-                }
-            }
             return _hash;
+        }
+    }
+
+    public class SystemGroup
+    {
+        public ISetupSystem[] SetupSystems { get; private set; }
+
+        public IEntityReactionSystem[] EntityReactionSystems { get; private set; }
+
+        public IEntityToEntityReactionSystem[] EntityToEntityReactionSystems { get; private set; }
+
+        public SystemGroup(List<ISystem> systems)
+        {
+            SetupSystems = systems.OfType<ISetupSystem>().OrderByPriority().ToArray();
+            EntityReactionSystems = systems.OfType<IEntityReactionSystem>().OrderByPriority().ToArray();
+            EntityToEntityReactionSystems =
+                systems.OfType<IEntityToEntityReactionSystem>().OrderByPriority().ToArray();
         }
     }
 }

@@ -33,22 +33,12 @@ namespace EcsRx.Extensions
         public static IEnumerable<T> OrderByPriority<T>(this IEnumerable<T> systems)
             where T : ISystem
         {
-            return systems.OrderBy(x =>
+            return systems.OrderByDescending(x =>
             {
-                var finalOrder = 0;
                 var priorityAttributes = x.GetType().GetCustomAttributes(typeof (PriorityAttribute), true);
-                if (priorityAttributes.Length > 0)
-                {
-                    var priorityAttribute = priorityAttributes.FirstOrDefault() as PriorityAttribute;
-                    var priority = priorityAttribute.Priority;
-
-                    if (priority >= 0)
-                    { finalOrder = int.MinValue + priority; }
-                    else
-                    { finalOrder -= priority; }
-                }
-
-                return finalOrder;
+                if (priorityAttributes.Length <= 0) return 0;
+                var priorityAttribute = priorityAttributes.FirstOrDefault() as PriorityAttribute;
+                return priorityAttribute.Priority;
             });
         } 
     }
