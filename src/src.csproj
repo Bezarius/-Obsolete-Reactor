@@ -208,7 +208,6 @@
     <Compile Include="Assets\EcsRx\Framework\Groups\IGroupAccessorFactory.cs" />
     <Compile Include="Assets\EcsRx\Framework\Groups\IGroupAccessorQuery.cs" />
     <Compile Include="Assets\EcsRx\Framework\Groups\IHasPredicate.cs" />
-    <Compile Include="Assets\EcsRx\Framework\Groups\ITypeGroup.cs" />
     <Compile Include="Assets\EcsRx\Framework\Groups\SystemGroup.cs" />
     <Compile Include="Assets\EcsRx\Framework\Pools\DefaultPoolFactory.cs" />
     <Compile Include="Assets\EcsRx\Framework\Pools\GroupAccessorToken.cs" />
