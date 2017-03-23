@@ -2,27 +2,30 @@
 using System.Linq;
 using EcsRx.Extensions;
 using UnityEngine;
+using Zenject;
 
 namespace Assets.EcsRx.Unity.ViewPooling
 {
-    public class ViewPool : IViewPool
+    public class InjectableViewPool : IViewPool
     {
         private readonly Stack<GameObject> _pooledObjects = new Stack<GameObject>();
+        private readonly IInstantiator _instantiator;
 
         public GameObject Prefab { get; private set; }
         public int IncrementSize { get; private set; }
 
-        public ViewPool(GameObject prefab, int incrementSize = 5)
+        public InjectableViewPool(IInstantiator instantiator, GameObject prefab, int incrementSize = 5)
         {
             Prefab = prefab;
             IncrementSize = incrementSize;
+            _instantiator = instantiator;
         }
 
         public void PreAllocate(int allocationCount)
         {
             for (var i = 0; i < allocationCount; i++)
             {
-                var newInstance = Object.Instantiate(Prefab);
+                var newInstance = _instantiator.InstantiatePrefab(Prefab);
                 newInstance.SetActive(false);
                 _pooledObjects.Push(newInstance);
             }
@@ -50,7 +53,7 @@ namespace Assets.EcsRx.Unity.ViewPooling
             availableGameObject.SetActive(true);
             return availableGameObject;
         }
-
+        
         public void ReleaseInstance(GameObject instance)
         {
             _pooledObjects.Push(instance);

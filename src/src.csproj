@@ -244,13 +244,15 @@
     <Compile Include="Assets\EcsRx\Unity\MonoBehaviours\PoolManagerViewer.cs" />
     <Compile Include="Assets\EcsRx\Unity\MonoBehaviours\RegisterAsEntity.cs" />
     <Compile Include="Assets\EcsRx\Unity\Plugins\IEcsRxPlugin.cs" />
+    <Compile Include="Assets\EcsRx\Unity\Systems\DefaultInjectablePooledViewResolverSystem.cs" />
     <Compile Include="Assets\EcsRx\Unity\Systems\DefaultPooledViewResolverSystem.cs" />
     <Compile Include="Assets\EcsRx\Unity\Systems\IViewHandler.cs" />
+    <Compile Include="Assets\EcsRx\Unity\Systems\PooledInjectableViewResolverSystem.cs" />
     <Compile Include="Assets\EcsRx\Unity\Systems\PooledViewResolverSystem.cs" />
     <Compile Include="Assets\EcsRx\Unity\Systems\ViewHandler.cs" />
     <Compile Include="Assets\EcsRx\Unity\Systems\ViewResolverSystem.cs" />
     <Compile Include="Assets\EcsRx\Unity\ViewPooling\IViewPool.cs" />
-    <Compile Include="Assets\EcsRx\Unity\ViewPooling\ViewObjectContainer.cs" />
+    <Compile Include="Assets\EcsRx\Unity\ViewPooling\InjectableViewPool.cs" />
     <Compile Include="Assets\EcsRx\Unity\ViewPooling\ViewPool.cs" />
     <Compile Include="Assets\Tests\PoolManagerTests.cs" />
     <Compile Include="Assets\Tests\Scenes\GroupedPerformance\Application.cs" />

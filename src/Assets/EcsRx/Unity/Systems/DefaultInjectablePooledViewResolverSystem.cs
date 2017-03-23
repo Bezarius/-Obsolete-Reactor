@@ -4,19 +4,20 @@ using EcsRx.Events;
 using EcsRx.Pools;
 using EcsRx.Unity.MonoBehaviours;
 using UnityEngine;
+using Zenject;
 
 namespace EcsRx.Unity.Systems
 {
-    public abstract class DefaultPooledViewResolverSystem : PooledViewResolverSystem
+    public abstract class DefaultInjectablePooledViewResolverSystem : PooledInjectableViewResolverSystem
     {
         public IViewPool ViewPool { get; private set; }
-
-        protected DefaultPooledViewResolverSystem(IPoolManager poolManager, IEventSystem eventSystem) :
-            base(poolManager, eventSystem)
+        
+        protected DefaultInjectablePooledViewResolverSystem(IPoolManager poolManager, IEventSystem eventSystem, IInstantiator instantiator) : 
+            base(poolManager, eventSystem, instantiator)
         {
-            ViewPool = new ViewPool(PrefabTemplate);
+            ViewPool = new InjectableViewPool(instantiator, PrefabTemplate);
         }
-
+        
         protected override void RecycleView(GameObject viewToRecycle)
         {
             viewToRecycle.transform.parent = null;

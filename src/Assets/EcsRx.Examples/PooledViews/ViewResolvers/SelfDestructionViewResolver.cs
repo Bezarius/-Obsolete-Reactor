@@ -5,7 +5,6 @@ using EcsRx.Pools;
 using EcsRx.Unity.Components;
 using EcsRx.Unity.Systems;
 using UnityEngine;
-using Zenject;
 
 namespace Assets.EcsRx.Examples.PooledViews.ViewResolvers
 {
@@ -16,14 +15,16 @@ namespace Assets.EcsRx.Examples.PooledViews.ViewResolvers
             get { return new Group(typeof(SelfDestructComponent), typeof(ViewComponent)); }
         }
 
-        public SelfDestructionViewResolver(IPoolManager poolManager, IEventSystem eventSystem, IInstantiator instantiator)
-            : base(poolManager, eventSystem, instantiator)
+        public SelfDestructionViewResolver(IPoolManager poolManager, IEventSystem eventSystem)
+            : base(poolManager, eventSystem)
         {
             ViewPool.PreAllocate(20);
         }
 
         protected override GameObject ResolvePrefabTemplate()
-        { return Resources.Load("PooledPrefab") as GameObject; }
+        {
+            return Resources.Load("PooledPrefab") as GameObject;
+        }
 
         protected override GameObject AllocateView(IEntity entity)
         {

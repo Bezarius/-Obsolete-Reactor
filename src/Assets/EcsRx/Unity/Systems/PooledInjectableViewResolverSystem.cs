@@ -7,14 +7,17 @@ using EcsRx.Systems;
 using EcsRx.Unity.Components;
 using UniRx;
 using UnityEngine;
+using Zenject;
 
 namespace EcsRx.Unity.Systems
 {
-    [Priority(999)]
-    public abstract class PooledViewResolverSystem : ISetupSystem
+    
+    [Priority(1000)]
+    public abstract class PooledInjectableViewResolverSystem : ISetupSystem
     {
         public IPoolManager PoolManager { get; private set; }
         public IEventSystem EventSystem { get; private set; }
+        public IInstantiator Instantiator { get; private set; }
 
         protected GameObject PrefabTemplate { get; set; }
 
@@ -22,15 +25,16 @@ namespace EcsRx.Unity.Systems
         {
             get { return new Group(typeof(ViewComponent)); }
         }
-
-        protected PooledViewResolverSystem(IPoolManager poolManager, IEventSystem eventSystem)
+        
+        protected PooledInjectableViewResolverSystem(IPoolManager poolManager, IEventSystem eventSystem, IInstantiator instantiator)
         {
             PoolManager = poolManager;
+            Instantiator = instantiator;
             EventSystem = eventSystem;
 
             PrefabTemplate = ResolvePrefabTemplate();
         }
-
+        
         protected abstract GameObject ResolvePrefabTemplate();
         protected abstract void RecycleView(GameObject viewToRecycle);
         protected abstract GameObject AllocateView(IEntity entity);
