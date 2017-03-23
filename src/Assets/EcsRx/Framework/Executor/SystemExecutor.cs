@@ -27,7 +27,6 @@ namespace EcsRx.Systems.Executor
         public IEntityReactionSystemHandler ReactToEntitySystemHandler { get; private set; }
         public IReactToGroupSystemHandler ReactToGroupSystemHandler { get; private set; }
         public ISetupSystemHandler SetupSystemHandler { get; private set; }
-        public IReactToDataSystemHandler ReactToDataSystemHandler { get; private set; }
         public IEntityToEntityReactionSystemHandler ReactToComponentSystemHandler { get; private set; }
         public IManualSystemHandler ManualSystemHandler { get; private set; }
 
@@ -37,7 +36,6 @@ namespace EcsRx.Systems.Executor
             IEntityReactionSystemHandler reactToEntitySystemHandler,
             IReactToGroupSystemHandler reactToGroupSystemHandler,
             ISetupSystemHandler setupSystemHandler,
-            IReactToDataSystemHandler reactToDataSystemHandler,
             IEntityToEntityReactionSystemHandler reactToComponentSystemHandler,
             IManualSystemHandler manualSystemHandler)
         {
@@ -46,7 +44,6 @@ namespace EcsRx.Systems.Executor
             ReactToEntitySystemHandler = reactToEntitySystemHandler;
             ReactToGroupSystemHandler = reactToGroupSystemHandler;
             SetupSystemHandler = setupSystemHandler;
-            ReactToDataSystemHandler = reactToDataSystemHandler;
             ReactToComponentSystemHandler = reactToComponentSystemHandler;
             ManualSystemHandler = manualSystemHandler;
 
@@ -227,14 +224,6 @@ namespace EcsRx.Systems.Executor
                 var subscription = ReactToComponentSystemHandler.ProcessEntity(x, entity);
                 _systemSubscriptions[x].Add(subscription);
             });
-
-            systems.Where(x => x.IsReactiveDataSystem())
-                //.OrderByPriority()
-                .ForEachRun(x =>
-                {
-                    var subscription = ReactToDataSystemHandler.ProcessEntityWithoutType(x, entity);
-                    _systemSubscriptions[x].Add(subscription);
-                });
         }
 
         public void RemoveSubscription(ISystem system, IEntity entity)
@@ -293,12 +282,6 @@ namespace EcsRx.Systems.Executor
                 subscriptionList.AddRange(subscriptions);
             }
 
-            if (system.IsReactiveDataSystem())
-            {
-                var subscriptions = ReactToDataSystemHandler.SetupWithoutType(system);
-                subscriptionList.AddRange(subscriptions);
-            }
-
             if (system is IManualSystem)
             {
                 ManualSystemHandler.Start(system as IManualSystem);
@@ -314,7 +297,9 @@ namespace EcsRx.Systems.Executor
         }
 
         public int GetTotalSubscriptions()
-        { return _systemSubscriptions.Values.Sum(x => x.Count); }
+        {
+            return _systemSubscriptions.Values.Sum(x => x.Count);
+        }
 
         public void Dispose()
         {

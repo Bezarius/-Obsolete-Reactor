@@ -63,9 +63,9 @@ namespace EcsRx.Unity.Helpers
                 EditorGUILayout.Space();
             }
 
-            EditorGUILayout.TextField("Data Systems");
+            EditorGUILayout.TextField("Entity to Entity Systems");
             EditorGUILayout.Space();
-            foreach (var system in executor.Systems.Where(x => x.IsReactiveDataSystem()))
+            foreach (var system in executor.Systems.OfType<IEntityToEntityReactionSystem>())
             {
                 EditorGUILayout.BeginVertical();
                 EditorGUILayout.LabelField("System: " + system.GetType().Name);
