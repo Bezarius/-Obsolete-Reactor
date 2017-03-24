@@ -1,9 +1,9 @@
-﻿using EcsRx.Entities;
-using EcsRx.Groups;
-using EcsRx.Systems;
-using EcsRx.Tests.Components;
+﻿using Reactor.Entities;
+using Reactor.Groups;
+using Reactor.Systems;
+using Reactor.Tests.Components;
 
-namespace EcsRx.Tests.Systems
+namespace Reactor.Tests.Systems
 {
     public class TestSetupSystem : ISetupSystem
     {

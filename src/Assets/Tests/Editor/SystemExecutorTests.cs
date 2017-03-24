@@ -1,18 +1,18 @@
 ﻿using System;
-using EcsRx.Components;
-using EcsRx.Entities;
-using EcsRx.Events;
-using EcsRx.Groups;
-using EcsRx.Pools;
-using EcsRx.Systems;
-using EcsRx.Systems.Executor;
-using EcsRx.Systems.Executor.Handlers;
-using EcsRx.Tests.Components;
+using Reactor.Components;
+using Reactor.Entities;
+using Reactor.Events;
+using Reactor.Groups;
+using Reactor.Pools;
+using Reactor.Systems;
+using Reactor.Systems.Executor;
+using Reactor.Systems.Executor.Handlers;
+using Reactor.Tests.Components;
 using NSubstitute;
 using NUnit.Framework;
 using UniRx;
 
-namespace EcsRx.Tests
+namespace Reactor.Tests
 {
     [TestFixture]
     public class SystemExecutorTests

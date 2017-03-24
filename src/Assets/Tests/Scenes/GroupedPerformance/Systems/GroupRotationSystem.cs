@@ -1,8 +1,8 @@
 ﻿using Assets.Tests.Scenes.GroupedPerformance.Components;
-using EcsRx.Entities;
-using EcsRx.Groups;
-using EcsRx.Systems;
-using EcsRx.Unity.Components;
+using Reactor.Entities;
+using Reactor.Groups;
+using Reactor.Systems;
+using Reactor.Unity.Components;
 using UniRx;
 using UnityEngine;
 

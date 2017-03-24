@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using EcsRx.Entities;
-using EcsRx.Groups;
-using EcsRx.Pools;
-using EcsRx.Systems;
-using EcsRx.Systems.Executor.Handlers;
-using EcsRx.Tests.Components;
+using Reactor.Entities;
+using Reactor.Groups;
+using Reactor.Pools;
+using Reactor.Systems;
+using Reactor.Systems.Executor.Handlers;
+using Reactor.Tests.Components;
 using NSubstitute;
 using NUnit.Framework;
 using UniRx;
 
-namespace EcsRx.Tests
+namespace Reactor.Tests
 {
     [TestFixture]
     public class ReactToEntitySystemHandlerTests

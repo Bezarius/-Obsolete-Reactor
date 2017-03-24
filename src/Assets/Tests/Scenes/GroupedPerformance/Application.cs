@@ -1,12 +1,12 @@
 ﻿using Assets.Tests.Scenes.GroupedPerformance.Components;
 using Assets.Tests.Scenes.GroupedPerformance.Systems;
 using Assets.Tests.Scenes.GroupedPerformance.ViewResolvers;
-using EcsRx.Unity;
-using EcsRx.Unity.Components;
+using Reactor.Unity;
+using Reactor.Unity.Components;
 
 namespace Assets.Tests.Scenes.GroupedPerformance
 {
-    public class Application : EcsRxApplication
+    public class Application : ReactorApplication
     {
         private readonly int _cubeCount = 500;
 

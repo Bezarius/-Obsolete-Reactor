@@ -1,6 +1,6 @@
-﻿using EcsRx.Components;
+﻿using Reactor.Components;
 
-namespace EcsRx.Tests.Components
+namespace Reactor.Tests.Components
 {
     public class TestComponentOne : IComponent
     {

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
-using EcsRx.Entities;
-using EcsRx.Events;
-using EcsRx.Pools;
+using Reactor.Entities;
+using Reactor.Events;
+using Reactor.Pools;
 using NSubstitute;
 using NUnit.Framework;
 
-namespace EcsRx.Tests
+namespace Reactor.Tests
 {
     [TestFixture]
     public class PoolTests

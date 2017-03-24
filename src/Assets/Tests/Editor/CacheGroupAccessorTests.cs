@@ -1,15 +1,15 @@
 ﻿using System;
-using EcsRx.Entities;
-using EcsRx.Events;
-using EcsRx.Groups;
-using EcsRx.Pools;
+using Reactor.Entities;
+using Reactor.Events;
+using Reactor.Groups;
+using Reactor.Pools;
 using NSubstitute;
 using NUnit.Framework;
 using System.Collections.Generic;
-using EcsRx.Tests.Components;
+using Reactor.Tests.Components;
 using UniRx;
 
-namespace EcsRx.Tests
+namespace Reactor.Tests
 {
     [TestFixture]
     public class CacheableGroupAccessorTests
