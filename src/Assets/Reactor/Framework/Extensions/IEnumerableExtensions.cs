@@ -27,7 +27,9 @@ namespace Reactor.Extensions
         }
 
         public static IEnumerable<ISystem> GetApplicableSystems(this IEnumerable<ISystem> systems, IEntity entity)
-        { return systems.Where(x => entity.MatchesGroup(x.TargetGroup)); }
+        {
+            return systems.Where(x => entity.MatchesGroup(x.TargetGroup));
+        }
 
 
         public static IEnumerable<T> OrderByPriority<T>(this IEnumerable<T> systems)

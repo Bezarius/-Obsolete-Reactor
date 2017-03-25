@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Reactor.Components;
 using Reactor.Entities;
 using Reactor.Events;
 using Reactor.Extensions;
@@ -17,8 +16,7 @@ namespace Reactor.Systems.Executor
         private readonly IList<ISystem> _systems;
         private readonly IList<IDisposable> _eventSubscriptions;
         private readonly Dictionary<ISystem, IList<SubscriptionToken>> _systemSubscriptions;
-
-        private readonly Dictionary<SystemGroupKey, List<ISystem>> _systemGroups = new Dictionary<SystemGroupKey, List<ISystem>>();
+        private readonly List<SystemReactor> _systemReactors = new List<SystemReactor>();
 
         public IEventSystem EventSystem { get; private set; }
         public IPoolManager PoolManager { get; private set; }
@@ -50,10 +48,7 @@ namespace Reactor.Systems.Executor
             var addEntitySubscription = EventSystem.Receive<EntityAddedEvent>().Subscribe(OnEntityAddedToPool);
             var removeEntitySubscription = EventSystem.Receive<EntityRemovedEvent>().Subscribe(OnEntityRemovedFromPool);
             var addComponentSubscription = EventSystem.Receive<ComponentAddedEvent>().Subscribe(OnEntityComponentAdded);
-            var addComponentsSubscription =
-                EventSystem.Receive<ComponentsAddedEvent>().Subscribe(OnEntityComponentsAdded);
             var removeComponentSubscription = EventSystem.Receive<ComponentRemovedEvent>().Subscribe(OnEntityComponentRemoved);
-            var removeComponentsSubscription = EventSystem.Receive<ComponentsRemovedEvent>().Subscribe(OnEntityComponentsRemoved);
 
             _systems = new List<ISystem>();
             _systemSubscriptions = new Dictionary<ISystem, IList<SubscriptionToken>>();
@@ -62,168 +57,46 @@ namespace Reactor.Systems.Executor
                 addEntitySubscription,
                 removeEntitySubscription,
                 addComponentSubscription,
-                removeComponentSubscription,
-                addComponentsSubscription,
-                removeComponentsSubscription
+                removeComponentSubscription
             };
         }
 
-        private void RegisterSystemGroup()
-        {
-
-        }
-
-
-        private void ProcessAddComponentsToEntity(IEntity entity, IEnumerable<IComponent> components)
-        {
-            // todo: add checks
-            List<ISystem> systems;
-
-            var entityTypes = entity.Components.Select(x => x.GetType());
-            var entityGroupKey = new SystemGroupKey(entityTypes);
-
-            if (!_systemGroups.ContainsKey(entityGroupKey))
-            {
-                // add new system group
-                var applicableSystems = _systems.GetApplicableSystems(entity).ToList();
-
-                _systemGroups.Add(entityGroupKey, applicableSystems);
-
-                if (applicableSystems.Count == 0)
-                    return;
-
-                if (entityTypes.Count() == components.Count())
-                {
-                    systems = applicableSystems;
-                }
-                else
-                {
-                    var effectedSystems = new List<ISystem>();
-                    foreach (var component in components)
-                    {
-                        effectedSystems.AddRange(
-                            applicableSystems.Where(
-                                x => x.TargetGroup.TargettedComponents.Contains(component.GetType())));
-                    }
-                    systems = effectedSystems;
-                }
-            }
-            else
-            {
-                // work with existed system group
-                var prevEntityGroupKey = new SystemGroupKey(entity.Components.Except(components)
-                    .Select(x => x.GetType()));
-                if (_systemGroups.ContainsKey(prevEntityGroupKey))
-                {
-                    var prevSystems = _systemGroups[prevEntityGroupKey];
-                    var currentSystems = _systemGroups[entityGroupKey];
-                    systems = currentSystems.Except(prevSystems).ToList();
-                }
-                else
-                {
-                    systems = _systemGroups[entityGroupKey];
-                }
-            }
-
-            ApplyEntityToSystems(systems, entity); // todo: optimize
-        }
-
-        private void ProcessRemoveComponentsFromEntity(IEntity entity, IEnumerable<IComponent> components)
-        {
-            IEnumerable<ISystem> effectedSystems;
-            var entityTypes = entity.Components.Select(x => x.GetType());
-            var prevComponentsTypes = entity.Components.Union(components).Select(x => x.GetType());
-            var prevEntityGroupKey = new SystemGroupKey(prevComponentsTypes);
-            
-            if (entityTypes.Any())
-            {
-                var entityGroupKey = new SystemGroupKey(entityTypes);
-                effectedSystems = _systemGroups[entityGroupKey].Except(_systemGroups[prevEntityGroupKey]);
-            }
-            else
-            {
-                effectedSystems = _systemGroups[prevEntityGroupKey];
-            }
-
-            foreach (var effectedSystem in effectedSystems)
-            {
-                if (effectedSystem is ITeardownSystem)
-                {
-                    (effectedSystem as ITeardownSystem).Teardown(entity);
-                }
-
-                // todo: optimize. mb to dict?
-                var subscriptionToken = _systemSubscriptions[effectedSystem]
-                    .FirstOrDefault(x => x.AssociatedObject == entity);
-
-                if (subscriptionToken != null)
-                {
-                    _systemSubscriptions[effectedSystem].Remove(subscriptionToken);
-                    subscriptionToken.Disposable.Dispose();
-                }
-                //_systemSubscriptions[effectedSystem].RemoveAll(subscriptionTokens);
-                //subscriptionTokens.DisposeAll();
-            }
-        }
 
         public void OnEntityComponentAdded(ComponentAddedEvent args)
         {
-            ProcessAddComponentsToEntity(args.Entity, new[] { args.Component });
-        }
-
-        public void OnEntityComponentsAdded(ComponentsAddedEvent args)
-        {
-            ProcessAddComponentsToEntity(args.Entity, args.Components);
+            var entity = args.Entity;
+            var type = args.Component.GetType();
+            if (entity.Reactor != null)
+            {
+                args.Entity.Reactor.AddComponent(entity, type);
+            }
+            else
+            {
+                var reactor = this.GetSystemReactor(new [] { type });
+                entity.Reactor = reactor;
+                AddSystemsToEntity(entity, reactor);
+            }
         }
 
         public void OnEntityComponentRemoved(ComponentRemovedEvent args)
         {
-            ProcessRemoveComponentsFromEntity(args.Entity, new[] { args.Component });
-        }
-
-        public void OnEntityComponentsRemoved(ComponentsRemovedEvent args)
-        {
-            ProcessRemoveComponentsFromEntity(args.Entity, args.Components);
+            args.Entity.Reactor.RemoveComponent(args.Entity, args.Component.GetType());
         }
 
         public void OnEntityAddedToPool(EntityAddedEvent args)
         {
-            //if (!args.Entity.Components.Any()) { return; }
-
-            //ProcessAddComponentsToEntity(args.Entity, args.Entity.Components);
+            var entity = args.Entity;
+            var types = entity.Components.Select(x => x.GetType()).ToArray();
+            if (types.Length > 0)
+            {
+                var reactor = this.GetSystemReactor(entity.Components.Select(x => x.GetType()).ToArray());
+                entity.Reactor = reactor;
+                AddSystemsToEntity(entity, reactor);
+            }
         }
 
         public void OnEntityRemovedFromPool(EntityRemovedEvent args)
         {
-            //ProcessRemoveComponentsFromEntity(args.Entity, args.Entity.Components);
-        }
-
-        private void ApplyEntityToSystems(List<ISystem> systems, IEntity entity)
-        {
-            systems.OfType<ISetupSystem>()
-                .OrderByPriority() //todo: optimize
-                .ForEachRun(x =>
-                {
-                    var possibleSubscription = SetupSystemHandler.ProcessEntity(x, entity);
-                    if (possibleSubscription != null)
-                    {
-                        _systemSubscriptions[x].Add(possibleSubscription);
-                    }
-                });
-
-            systems.OfType<IEntityReactionSystem>()
-                //.OrderByPriority()
-                .ForEachRun(x =>
-                {
-                    var subscription = ReactToEntitySystemHandler.ProcessEntity(x, entity); // todo: optimize - 69%
-                    _systemSubscriptions[x].Add(subscription);
-                });
-
-            systems.OfType<IEntityToEntityReactionSystem>().ForEachRun(x =>
-            {
-                var subscription = ReactToComponentSystemHandler.ProcessEntity(x, entity);
-                _systemSubscriptions[x].Add(subscription);
-            });
         }
 
         public void RemoveSubscription(ISystem system, IEntity entity)
@@ -288,6 +161,92 @@ namespace Reactor.Systems.Executor
             }
 
             _systemSubscriptions.Add(system, subscriptionList);
+        }
+
+        public SystemReactor GetSystemReactor(Type[] targetTypes)
+        {
+            if (targetTypes.Length > 0)
+            {
+                SystemReactor reactor =
+                    _systemReactors.FirstOrDefault(
+                        x => x.TargetTypes.Intersect(targetTypes).Count() == targetTypes.Length);
+
+                if (reactor == null)
+                {
+                    reactor = new SystemReactor(this, targetTypes);
+                    _systemReactors.Add(reactor);
+                }
+
+                return reactor;
+            }
+            return null;
+        }
+
+        public void AddSystemsToEntity(IEntity entity, ISystemContainer container)
+        {
+            for (int i = 0; i < container.SetupSystems.Length; i++)
+            {
+                var system = container.SetupSystems[i];
+                var subscription = SetupSystemHandler.ProcessEntity(system, entity);
+                if (subscription != null)
+                {
+                    _systemSubscriptions[system].Add(subscription);
+                }
+            }
+
+            for (int i = 0; i < container.EntityReactionSystems.Length; i++)
+            {
+                var system = container.EntityReactionSystems[i];
+                var subscription = ReactToEntitySystemHandler.ProcessEntity(system, entity);
+                if (subscription != null)
+                {
+                    _systemSubscriptions[system].Add(subscription);
+                }
+            }
+
+            for (int i = 0; i < container.EntityToEntityReactionSystems.Length; i++)
+            {
+                var system = container.EntityToEntityReactionSystems[i];
+                var subscription = ReactToComponentSystemHandler.ProcessEntity(system, entity);
+                if (subscription != null)
+                {
+                    _systemSubscriptions[system].Add(subscription);
+                }
+            }
+        }
+
+        private void RemoveEntitySubscriptionFromSystem(IEntity entity, ISystem system)
+        {
+            var subscriptionToken = _systemSubscriptions[system]
+                    .FirstOrDefault(x => x.AssociatedObject == entity);
+
+            if (subscriptionToken != null)
+            {
+                _systemSubscriptions[system].Remove(subscriptionToken);
+                subscriptionToken.Disposable.Dispose();
+            }
+        }
+
+        public void RemoveSystemsFromEntity(IEntity entity, ISystemContainer container)
+        {
+            for (int i = 0; i < container.TeardownSystems.Length; i++)
+            {
+                var system = container.TeardownSystems[i];
+
+                system.Teardown(entity);
+
+                RemoveEntitySubscriptionFromSystem(entity, system);
+            }
+
+            for (int i = 0; i < container.EntityReactionSystems.Length; i++)
+            {
+                RemoveEntitySubscriptionFromSystem(entity, container.EntityReactionSystems[i]);
+            }
+
+            for (int i = 0; i < container.EntityToEntityReactionSystems.Length; i++)
+            {
+                RemoveEntitySubscriptionFromSystem(entity, container.EntityToEntityReactionSystems[i]);
+            }
         }
 
         public int GetSubscriptionCountForSystem(ISystem system)

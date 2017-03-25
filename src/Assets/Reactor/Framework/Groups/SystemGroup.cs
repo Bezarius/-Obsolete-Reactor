@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Reactor.Extensions;
-using Reactor.Systems;
 
 namespace Reactor.Groups
 {
@@ -34,23 +31,6 @@ namespace Reactor.Groups
         public override int GetHashCode()
         {
             return _hash;
-        }
-    }
-
-    public class SystemGroup
-    {
-        public ISetupSystem[] SetupSystems { get; private set; }
-
-        public IEntityReactionSystem[] EntityReactionSystems { get; private set; }
-
-        public IEntityToEntityReactionSystem[] EntityToEntityReactionSystems { get; private set; }
-
-        public SystemGroup(List<ISystem> systems)
-        {
-            SetupSystems = systems.OfType<ISetupSystem>().OrderByPriority().ToArray();
-            EntityReactionSystems = systems.OfType<IEntityReactionSystem>().OrderByPriority().ToArray();
-            EntityToEntityReactionSystems =
-                systems.OfType<IEntityToEntityReactionSystem>().OrderByPriority().ToArray();
         }
     }
 }

@@ -32,8 +32,8 @@ namespace Assets.Reactor.Examples.PooledViews.Systems
 
         public void Execute(IEntity sourceEntity, IEntity targetEntity)
         {
-            var targetRigi = targetEntity.GetComponent<ColliderComponent>();
-            targetRigi.Rigidbody.AddRelativeForce(sourceEntity.GetComponent<ViewComponent>().View.transform.position);
+            //var targetRigi = targetEntity.GetComponent<ColliderComponent>();
+            //targetRigi.Rigidbody.AddRelativeForce(sourceEntity.GetComponent<ViewComponent>().View.transform.position);
         }
     }
 }

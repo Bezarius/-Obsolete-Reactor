@@ -24,7 +24,9 @@ namespace Reactor.Extensions
         }
 
         public static bool MatchesGroup(this IEntity entity, IGroup group)
-        { return entity.HasComponents(group.TargettedComponents.ToArray()); }
+        {
+            return entity.HasComponents(group.TargettedComponents.ToArray());
+        }
 
         public static IEntity ApplyBlueprint(this IEntity entity, IBlueprint blueprint)
         {

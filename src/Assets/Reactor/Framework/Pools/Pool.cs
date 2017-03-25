@@ -28,12 +28,12 @@ namespace Reactor.Pools
 
             _entities.Add(entity);
 
-            EventSystem.Publish(new EntityAddedEvent(entity, this));
-
             if (blueprint != null)
             {
                 blueprint.Apply(entity);
             }
+
+            EventSystem.Publish(new EntityAddedEvent(entity, this));
 
             return entity;
         }
@@ -42,9 +42,9 @@ namespace Reactor.Pools
         {
             _entities.Remove(entity);
 
-            entity.Dispose();
-
             EventSystem.Publish(new EntityRemovedEvent(entity, this));
+
+            entity.Dispose();
         }
     }
 }

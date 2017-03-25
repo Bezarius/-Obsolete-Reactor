@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using Reactor.Blueprints;
-using Reactor.Components;
+﻿using Reactor.Blueprints;
 using Reactor.Entities;
 using Reactor.Unity.Components;
 using UnityEngine;
@@ -13,13 +11,14 @@ namespace Assets.Reactor.Examples.PooledViews.Blueprints
         private readonly float _maxLifetime = 10.0f;
         private readonly Vector3 _startPosition;
 
-        public SelfDestructBlueprint(Vector3 startPosition)
+        public SelfDestructBlueprint(Vector3 startPosition) 
         {
             _startPosition = startPosition;
         }
 
         public void Apply(IEntity entity)
         {
+            /*
             var selfDestructComponent = new SelfDestructComponent
             {
                 Lifetime = Random.Range(_minLifetime, _maxLifetime),
@@ -31,7 +30,16 @@ namespace Assets.Reactor.Examples.PooledViews.Blueprints
                 new ColliderComponent(),
                 new ViewComponent()
             };
-            entity.AddComponents(componetns);
+            entity.AddComponents(componetns);*/
+
+            entity.AddComponent(new SelfDestructComponent
+            {
+                Lifetime = Random.Range(_minLifetime, _maxLifetime),
+                StartingPosition = _startPosition
+            });
+
+            entity.AddComponent<ColliderComponent>();
+            entity.AddComponent<ViewComponent>();
         }
     }
 }

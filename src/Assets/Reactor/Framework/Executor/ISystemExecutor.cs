@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using Reactor.Entities;
+using Reactor.Groups;
 using Reactor.Pools;
 
 namespace Reactor.Systems.Executor
@@ -10,5 +13,8 @@ namespace Reactor.Systems.Executor
 
         void RemoveSystem(ISystem system);
         void AddSystem(ISystem system);
+        SystemReactor GetSystemReactor(Type[] targetTypes);
+        void AddSystemsToEntity(IEntity entity, ISystemContainer container);
+        void RemoveSystemsFromEntity(IEntity entity, ISystemContainer connection);
     }
 }

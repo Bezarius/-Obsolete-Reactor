@@ -1,6 +1,4 @@
-﻿using Assets.Reactor.Examples.SceneFirstSetup.Components;
-using Reactor.Unity;
-using Reactor.Unity.Components;
+﻿using Reactor.Unity;
 
 namespace Assets.Reactor.Examples.PooledViews
 {

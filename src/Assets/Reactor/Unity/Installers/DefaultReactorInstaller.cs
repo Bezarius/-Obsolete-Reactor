@@ -30,7 +30,7 @@ namespace Reactor.Unity.Installers
             Container.Bind<ISetupSystemHandler>().To<SetupSystemHandler>();
             Container.Bind<IManualSystemHandler>().To<ManualSystemHandler>();
 
-            Container.Bind<ISystemExecutor>().To<SystemExecutor>().AsSingle();
+            Container.Bind<ISystemExecutor>().To<SystemExecutor>().AsSingle().NonLazy();
         }
     }
 }

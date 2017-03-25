@@ -51,14 +51,18 @@ namespace Reactor.Groups
 
         public void OnEntityComponentRemoved(ComponentRemovedEvent args)
         {
-            if(!args.Entity.HasComponents(AccessorToken.ComponentTypes))
-            { CachedEntities.Remove(args.Entity); }
+            if (!args.Entity.HasComponents(AccessorToken.ComponentTypes))
+            {
+                CachedEntities.Remove(args.Entity);
+            }
         }
 
         public void OnEntityComponentAdded(ComponentAddedEvent args)
         {
-            if(args.Entity.HasComponents(AccessorToken.ComponentTypes) && !CachedEntities.Contains(args.Entity))
-            { CachedEntities.Add(args.Entity); }
+            if (args.Entity.HasComponents(AccessorToken.ComponentTypes) && !CachedEntities.Contains(args.Entity))
+            {
+                CachedEntities.Add(args.Entity);
+            }
         }
 
         public void OnEntityAddedToPool(EntityAddedEvent args)
@@ -77,6 +81,8 @@ namespace Reactor.Groups
         }
 
         public void Dispose()
-        { Subscriptions.DisposeAll(); }
+        {
+            Subscriptions.DisposeAll();
+        }
     }
 }

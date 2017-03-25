@@ -37,7 +37,9 @@ namespace Reactor.Unity
         protected abstract void ApplicationStarted();
 
         protected virtual void RegisterAllPluginDependencies()
-        { Plugins.ForEachRun(x => x.SetupDependencies(Container)); }
+        {
+            Plugins.ForEachRun(x => x.SetupDependencies(Container));
+        }
 
         protected virtual void SetupAllPluginSystems()
         {
@@ -46,7 +48,9 @@ namespace Reactor.Unity
         }
 
         protected void RegisterPlugin(IReactorPlugin plugin)
-        { Plugins.Add(plugin); }
+        {
+            Plugins.Add(plugin);
+        }
         
         protected virtual void RegisterAllBoundSystems()
         {
@@ -55,6 +59,7 @@ namespace Reactor.Unity
             var orderedSystems = allSystems
                 .OrderByDescending(x => x is ViewResolverSystem)
                 .ThenByDescending(x => x is ISetupSystem);
+
             orderedSystems.ForEachRun(SystemExecutor.AddSystem);
         }
 
