@@ -7,7 +7,7 @@ namespace Assets.Reactor.Examples.PooledViews.Blueprints
 {
     public class SelfDestructBlueprint : IBlueprint
     {
-        private readonly float _minLifetime = 1.0f;
+        private readonly float _minLifetime = 3.0f;
         private readonly float _maxLifetime = 10.0f;
         private readonly Vector3 _startPosition;
 

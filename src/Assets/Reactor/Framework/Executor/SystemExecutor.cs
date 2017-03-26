@@ -17,6 +17,12 @@ namespace Reactor.Systems.Executor
         private readonly IList<IDisposable> _eventSubscriptions;
         private readonly Dictionary<ISystem, IList<SubscriptionToken>> _systemSubscriptions;
         private readonly List<SystemReactor> _systemReactors = new List<SystemReactor>();
+        private SystemReactor _emptyReactor;
+
+        private SystemReactor EmptyReactor
+        {
+            get { return _emptyReactor ?? (_emptyReactor = new SystemReactor(this, new HashSet<Type>())); }
+        }
 
         public IEventSystem EventSystem { get; private set; }
         public IPoolManager PoolManager { get; private set; }
@@ -72,7 +78,7 @@ namespace Reactor.Systems.Executor
             }
             else
             {
-                var reactor = this.GetSystemReactor(new [] { type });
+                var reactor = this.GetSystemReactor(new HashSet<Type> {type});
                 entity.Reactor = reactor;
                 AddSystemsToEntity(entity, reactor);
             }
@@ -86,10 +92,10 @@ namespace Reactor.Systems.Executor
         public void OnEntityAddedToPool(EntityAddedEvent args)
         {
             var entity = args.Entity;
-            var types = entity.Components.Select(x => x.GetType()).ToArray();
-            if (types.Length > 0)
+            var set = new HashSet<Type>(args.Entity.Components.Select(x=>x.GetType()));
+            if (set.Count > 0)
             {
-                var reactor = this.GetSystemReactor(entity.Components.Select(x => x.GetType()).ToArray());
+                var reactor = this.GetSystemReactor(set);
                 entity.Reactor = reactor;
                 AddSystemsToEntity(entity, reactor);
             }
@@ -99,16 +105,6 @@ namespace Reactor.Systems.Executor
         {
         }
 
-        public void RemoveSubscription(ISystem system, IEntity entity)
-        {
-            var subscriptionList = _systemSubscriptions[system];
-            var subscriptionTokens = subscriptionList.GetTokensFor(entity).ToArray();
-
-            if (!subscriptionTokens.Any()) { return; }
-
-            subscriptionTokens.ForEachRun(x => subscriptionList.Remove(x));
-            subscriptionTokens.DisposeAll();
-        }
 
         public void RemoveSystem(ISystem system)
         {
@@ -163,13 +159,14 @@ namespace Reactor.Systems.Executor
             _systemSubscriptions.Add(system, subscriptionList);
         }
 
-        public SystemReactor GetSystemReactor(Type[] targetTypes)
+        public SystemReactor GetSystemReactor(HashSet<Type> targetTypes)
         {
-            if (targetTypes.Length > 0)
+            if (targetTypes.Count > 0)
             {
+                //new HashSet<int>(first).SetEquals(second)
                 SystemReactor reactor =
                     _systemReactors.FirstOrDefault(
-                        x => x.TargetTypes.Intersect(targetTypes).Count() == targetTypes.Length);
+                        x => x.TargetTypes.SetEquals(targetTypes));
 
                 if (reactor == null)
                 {
@@ -179,7 +176,7 @@ namespace Reactor.Systems.Executor
 
                 return reactor;
             }
-            return null;
+            return EmptyReactor;
         }
 
         public void AddSystemsToEntity(IEntity entity, ISystemContainer container)
@@ -217,13 +214,15 @@ namespace Reactor.Systems.Executor
 
         private void RemoveEntitySubscriptionFromSystem(IEntity entity, ISystem system)
         {
-            var subscriptionToken = _systemSubscriptions[system]
-                    .FirstOrDefault(x => x.AssociatedObject == entity);
+            //todo: optimize. Method very slow 
 
-            if (subscriptionToken != null)
+            var subscriptionTokens = _systemSubscriptions[system]
+                    .Where(x => x.AssociatedObject == entity).ToArray();
+
+            if (!subscriptionTokens.Any()) { return; }
             {
-                _systemSubscriptions[system].Remove(subscriptionToken);
-                subscriptionToken.Disposable.Dispose();
+                _systemSubscriptions[system].RemoveAll(subscriptionTokens);
+                subscriptionTokens.DisposeAll();
             }
         }
 

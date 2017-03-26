@@ -42,7 +42,7 @@ namespace Reactor.Groups
     public class SystemReactor : ISystemContainer
     {
         private readonly ISystemExecutor _systemExecutor;
-        public readonly Type[] TargetTypes;
+        public readonly HashSet<Type> TargetTypes;
 
         public ISetupSystem[] SetupSystems { get; private set; }
         public IEntityReactionSystem[] EntityReactionSystems { get; private set; }
@@ -51,7 +51,7 @@ namespace Reactor.Groups
 
         private readonly Dictionary<Type, ReactorConnection> _connections = new Dictionary<Type, ReactorConnection>();
 
-        public SystemReactor(ISystemExecutor systemExecutor, Type[] targetTypes)
+        public SystemReactor(ISystemExecutor systemExecutor, HashSet<Type> targetTypes)
         {
             _systemExecutor = systemExecutor;
             TargetTypes = targetTypes;
@@ -78,11 +78,8 @@ namespace Reactor.Groups
             ReactorConnection connection;
             if (!_connections.TryGetValue(componenType, out connection))
             {
-                var types = new Type[TargetTypes.Length + 1];
-                Array.Copy(TargetTypes, types, TargetTypes.Length);
-                types[TargetTypes.Length] = componenType;
-
-                SystemReactor reactor = _systemExecutor.GetSystemReactor(types);
+                var set = new HashSet<Type>(TargetTypes) {componenType};
+                SystemReactor reactor = _systemExecutor.GetSystemReactor(set);
                 connection = new ReactorConnection(reactor, this);
                 this.AddReactorsConnection(componenType, connection, reactor);
             }
@@ -95,11 +92,9 @@ namespace Reactor.Groups
             ReactorConnection connection;
             if (!_connections.TryGetValue(componenType, out connection))
             {
-                var types = new Type[TargetTypes.Length + 1];
-                Array.Copy(TargetTypes, types, TargetTypes.Length);
-                types[TargetTypes.Length] = componenType;
-
-                SystemReactor reactor = _systemExecutor.GetSystemReactor(types);
+                var set = new HashSet<Type>(TargetTypes) { componenType };
+                set.Remove(componenType);
+                SystemReactor reactor = _systemExecutor.GetSystemReactor(set);
                 connection = new ReactorConnection(this, reactor);
                 this.AddReactorsConnection(componenType, connection, reactor);
             }

@@ -7,7 +7,7 @@ namespace Reactor.Pools
 {
     public class Pool : IPool
     {
-        private readonly IList<IEntity> _entities;
+        private readonly HashSet<IEntity> _entities;
 
         public string Name { get; private set; }
         public IEnumerable<IEntity> Entities { get { return _entities;} }
@@ -16,7 +16,7 @@ namespace Reactor.Pools
 
         public Pool(string name, IEntityFactory entityFactory, IEventSystem eventSystem)
         {
-            _entities = new List<IEntity>();
+            _entities = new HashSet<IEntity>();
             Name = name;
             EventSystem = eventSystem;
             EntityFactory = entityFactory;
@@ -42,9 +42,9 @@ namespace Reactor.Pools
         {
             _entities.Remove(entity);
 
-            EventSystem.Publish(new EntityRemovedEvent(entity, this));
-
             entity.Dispose();
+
+            EventSystem.Publish(new EntityRemovedEvent(entity, this));
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Reactor.Groups
 {
     public class CacheableGroupAccessor : IGroupAccessor, IDisposable
     {
-        public readonly IList<IEntity> CachedEntities;
+        public readonly HashSet<IEntity> CachedEntities;
         public readonly IList<IDisposable> Subscriptions;
 
         public GroupAccessorToken AccessorToken { get; private set; }
@@ -23,7 +23,7 @@ namespace Reactor.Groups
             AccessorToken = accessorToken;
             EventSystem = eventSystem;
 
-            CachedEntities = new List<IEntity>(initialEntities);
+            CachedEntities = new HashSet<IEntity>(initialEntities);
             Subscriptions = new List<IDisposable>();
         }
 

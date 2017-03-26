@@ -83,8 +83,9 @@ namespace Reactor.Entities
                 }
 
                 _components.Remove(component.GetType());
+                EventSystem.Publish(new ComponentRemovedEvent(this, component));
             }
-            EventSystem.Publish(new ComponentsRemovedEvent(this, components));
+            //EventSystem.Publish(new ComponentsRemovedEvent(this, components));
         }
 
         public void RemoveAllComponents(Func<IComponent, bool> func)

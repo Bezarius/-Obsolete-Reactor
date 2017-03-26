@@ -13,7 +13,7 @@ namespace Reactor.Systems.Executor
 
         void RemoveSystem(ISystem system);
         void AddSystem(ISystem system);
-        SystemReactor GetSystemReactor(Type[] targetTypes);
+        SystemReactor GetSystemReactor(HashSet<Type> targetTypes);
         void AddSystemsToEntity(IEntity entity, ISystemContainer container);
         void RemoveSystemsFromEntity(IEntity entity, ISystemContainer connection);
     }
