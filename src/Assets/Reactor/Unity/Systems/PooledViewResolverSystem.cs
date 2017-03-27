@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Reactor.Attributes;
 using Reactor.Entities;
 using Reactor.Events;
@@ -16,6 +17,8 @@ namespace Reactor.Unity.Systems
         public IPoolManager PoolManager { get; private set; }
         public IEventSystem EventSystem { get; private set; }
 
+        private readonly Dictionary<IEntity, GameObject> _views = new Dictionary<IEntity, GameObject>();
+
         protected GameObject PrefabTemplate { get; set; }
 
         public virtual IGroup TargetGroup
@@ -29,11 +32,24 @@ namespace Reactor.Unity.Systems
             EventSystem = eventSystem;
 
             PrefabTemplate = ResolvePrefabTemplate();
+
+            EventSystem.Receive<EntityRemovedEvent>()
+                .Subscribe(x =>
+                {
+                    GameObject view;
+                    if (_views.TryGetValue(x.Entity, out view))
+                    {
+                        RecycleView(view);
+                        _views.Remove(x.Entity);
+                    }
+                });
         }
 
         protected abstract GameObject ResolvePrefabTemplate();
         protected abstract void RecycleView(GameObject viewToRecycle);
         protected abstract GameObject AllocateView(IEntity entity);
+
+        
 
         public virtual void Setup(IEntity entity)
         {
@@ -43,9 +59,7 @@ namespace Reactor.Unity.Systems
             var viewObject = AllocateView(entity);
             viewComponent.View = viewObject;
 
-            EventSystem.Receive<EntityRemovedEvent>()
-                .First(x => x.Entity == entity)
-                .Subscribe(x => RecycleView(viewObject));
+            _views.Add(entity, viewObject);
         }
     }
 }

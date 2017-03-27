@@ -91,15 +91,6 @@ namespace Reactor.Systems.Executor
 
         public void OnEntityAddedToPool(EntityAddedEvent args)
         {
-            /*
-            var entity = args.Entity;
-            var set = new HashSet<Type>(args.Entity.Components.Select(x=>x.GetType()));
-            if (set.Count > 0)
-            {
-                var reactor = this.GetSystemReactor(set);
-                entity.Reactor = reactor;
-                AddSystemsToEntity(entity, reactor);
-            }*/
         }
 
         public void OnEntityRemovedFromPool(EntityRemovedEvent args)
