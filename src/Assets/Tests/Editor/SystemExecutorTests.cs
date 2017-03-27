@@ -1,5 +1,4 @@
 ﻿using System;
-using Reactor.Components;
 using Reactor.Entities;
 using Reactor.Events;
 using Reactor.Groups;
@@ -10,7 +9,6 @@ using Reactor.Systems.Executor.Handlers;
 using Reactor.Tests.Components;
 using NSubstitute;
 using NUnit.Framework;
-using UniRx;
 
 namespace Reactor.Tests
 {
@@ -56,8 +54,8 @@ namespace Reactor.Tests
         {
             var mockPoolManager = Substitute.For<IPoolManager>();
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var mockReactToGroupSystemHandler = Substitute.For<IReactToGroupSystemHandler>();
-            var fakeSystem = Substitute.For<IReactToGroupSystem>();
+            var mockReactToGroupSystemHandler = Substitute.For<IGroupReactionSystemHandler>();
+            var fakeSystem = Substitute.For<IGroupReactionSystem>();
 
             var systemExecutor = new SystemExecutor(mockPoolManager, mockEventSystem,
                 null, mockReactToGroupSystemHandler, null, null, null);

@@ -17,8 +17,8 @@ namespace Reactor.Systems.Executor
         private readonly IList<IDisposable> _eventSubscriptions;
         private readonly Dictionary<ISystem, Dictionary<IEntity, SubscriptionToken>> _systemSubscriptions;
         private readonly List<SystemReactor> _systemReactors = new List<SystemReactor>();
-        private SystemReactor _emptyReactor;
 
+        private SystemReactor _emptyReactor;
         private SystemReactor EmptyReactor
         {
             get { return _emptyReactor ?? (_emptyReactor = new SystemReactor(this, new HashSet<Type>())); }
@@ -28,27 +28,27 @@ namespace Reactor.Systems.Executor
         public IPoolManager PoolManager { get; private set; }
         public IEnumerable<ISystem> Systems { get { return _systems; } }
 
-        public IEntityReactionSystemHandler ReactToEntitySystemHandler { get; private set; }
-        public IReactToGroupSystemHandler ReactToGroupSystemHandler { get; private set; }
+        public IEntityReactionSystemHandler EntityReactionSystemHandler { get; private set; }
+        public IGroupReactionSystemHandler GroupReactionSystemHandler { get; private set; }
         public ISetupSystemHandler SetupSystemHandler { get; private set; }
-        public IEntityToEntityReactionSystemHandler ReactToComponentSystemHandler { get; private set; }
+        public IInteractReactionSystemHandler InteractReactionSystemHandler { get; private set; }
         public IManualSystemHandler ManualSystemHandler { get; private set; }
 
         public SystemExecutor(
             IPoolManager poolManager,
             IEventSystem eventSystem,
-            IEntityReactionSystemHandler reactToEntitySystemHandler,
-            IReactToGroupSystemHandler reactToGroupSystemHandler,
+            IEntityReactionSystemHandler entityReactionSystemHandler,
+            IGroupReactionSystemHandler groupReactionSystemHandler,
             ISetupSystemHandler setupSystemHandler,
-            IEntityToEntityReactionSystemHandler reactToComponentSystemHandler,
+            IInteractReactionSystemHandler interactReactionSystemHandler,
             IManualSystemHandler manualSystemHandler)
         {
             PoolManager = poolManager;
             EventSystem = eventSystem;
-            ReactToEntitySystemHandler = reactToEntitySystemHandler;
-            ReactToGroupSystemHandler = reactToGroupSystemHandler;
+            EntityReactionSystemHandler = entityReactionSystemHandler;
+            GroupReactionSystemHandler = groupReactionSystemHandler;
             SetupSystemHandler = setupSystemHandler;
-            ReactToComponentSystemHandler = reactToComponentSystemHandler;
+            InteractReactionSystemHandler = interactReactionSystemHandler;
             ManualSystemHandler = manualSystemHandler;
 
             var addEntitySubscription = EventSystem.Receive<EntityAddedEvent>().Subscribe(OnEntityAddedToPool);
@@ -125,21 +125,21 @@ namespace Reactor.Systems.Executor
                 subscriptionList.AddRange(subscriptions);
             }
 
-            if (system is IReactToGroupSystem)
+            if (system is IGroupReactionSystem)
             {
-                var subscription = ReactToGroupSystemHandler.Setup(system as IReactToGroupSystem);
+                var subscription = GroupReactionSystemHandler.Setup(system as IGroupReactionSystem);
                 subscriptionList.Add(subscription);
             }
 
             if (system is IEntityReactionSystem)
             {
-                var subscriptions = ReactToEntitySystemHandler.Setup(system as IEntityReactionSystem);
+                var subscriptions = EntityReactionSystemHandler.Setup(system as IEntityReactionSystem);
                 subscriptionList.AddRange(subscriptions);
             }
 
-            if (system is IEntityToEntityReactionSystem)
+            if (system is IInteractReactionSystem)
             {
-                var subscriptions = ReactToComponentSystemHandler.Setup(system as IEntityToEntityReactionSystem);
+                var subscriptions = InteractReactionSystemHandler.Setup(system as IInteractReactionSystem);
                 subscriptionList.AddRange(subscriptions);
             }
 
@@ -186,17 +186,17 @@ namespace Reactor.Systems.Executor
             for (int i = 0; i < container.EntityReactionSystems.Length; i++)
             {
                 var system = container.EntityReactionSystems[i];
-                var subscription = ReactToEntitySystemHandler.ProcessEntity(system, entity);
+                var subscription = EntityReactionSystemHandler.ProcessEntity(system, entity);
                 if (subscription != null)
                 {
                     _systemSubscriptions[system].Add(entity, subscription);
                 }
             }
 
-            for (int i = 0; i < container.EntityToEntityReactionSystems.Length; i++)
+            for (int i = 0; i < container.InteractReactionSystems.Length; i++)
             {
-                var system = container.EntityToEntityReactionSystems[i];
-                var subscription = ReactToComponentSystemHandler.ProcessEntity(system, entity);
+                var system = container.InteractReactionSystems[i];
+                var subscription = InteractReactionSystemHandler.ProcessEntity(system, entity);
                 if (subscription != null)
                 {
                     _systemSubscriptions[system].Add(entity,subscription);
@@ -229,9 +229,9 @@ namespace Reactor.Systems.Executor
                 RemoveEntitySubscriptionFromSystem(entity, container.EntityReactionSystems[i]);
             }
 
-            for (int i = 0; i < container.EntityToEntityReactionSystems.Length; i++)
+            for (int i = 0; i < container.InteractReactionSystems.Length; i++)
             {
-                RemoveEntitySubscriptionFromSystem(entity, container.EntityToEntityReactionSystems[i]);
+                RemoveEntitySubscriptionFromSystem(entity, container.InteractReactionSystems[i]);
             }
         }
 

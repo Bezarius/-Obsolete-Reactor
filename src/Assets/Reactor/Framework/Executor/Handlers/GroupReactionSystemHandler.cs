@@ -5,22 +5,27 @@ using UniRx;
 
 namespace Reactor.Systems.Executor.Handlers
 {
-    public class ReactToGroupSystemHandler : IReactToGroupSystemHandler
+    public class GroupReactionSystemHandler : IGroupReactionSystemHandler
     {
         public IPoolManager PoolManager { get; private set; }
 
-        public ReactToGroupSystemHandler(IPoolManager poolManager)
+        public GroupReactionSystemHandler(IPoolManager poolManager)
         {
             PoolManager = poolManager;
         }
 
-        public SubscriptionToken Setup(IReactToGroupSystem system)
+        public SubscriptionToken Setup(IGroupReactionSystem system)
         {
-            var hasEntityPredicate = system.TargetGroup is IHasPredicate;
+            //var hasEntityPredicate = system.TargetGroup is IHasPredicate;
             var groupAccessor = PoolManager.CreateGroupAccessor(system.TargetGroup);
-            var subscription = system.ReactToGroup(groupAccessor)
+            var subscription = system.Impact(groupAccessor)
                 .Subscribe(accessor =>
                 {
+                    foreach (var entity in accessor.Entities)
+                    {
+                        system.Reaction(entity);
+                    }
+                    /*
                     var entities = accessor.Entities.ToList();
                     var entityCount = entities.Count - 1;
                     for (var i = entityCount; i >= 0; i--)
@@ -30,13 +35,13 @@ namespace Reactor.Systems.Executor.Handlers
                             var groupPredicate = system.TargetGroup as IHasPredicate;
                             if (groupPredicate.CanProcessEntity(entities[i]))
                             {
-                                system.Execute(entities[i]);
+                                system.Reaction(entities[i]);
                             }
                             return;
                         }
 
-                        system.Execute(entities[i]);
-                    }
+                        system.Reaction(entities[i]);
+                    }*/
                 });
 
             return new SubscriptionToken(null, subscription);

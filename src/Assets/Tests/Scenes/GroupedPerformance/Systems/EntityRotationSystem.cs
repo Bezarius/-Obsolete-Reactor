@@ -12,12 +12,12 @@ namespace Assets.Tests.Scenes.GroupedPerformance.Systems
     {
         public IGroup TargetGroup { get { return new Group(typeof(ViewComponent), typeof(RotationComponent)); } }
 
-        public IObservable<IEntity> EntityReaction(IEntity entity)
+        public IObservable<IEntity> Impact(IEntity entity)
         {
             return Observable.EveryUpdate().Select(x => entity);
         }
 
-        public void Execute(IEntity entity)
+        public void Reaction(IEntity entity)
         {
             var rotationComponent = entity.GetComponent<RotationComponent>();
             var viewComponent = entity.GetComponent<ViewComponent>();

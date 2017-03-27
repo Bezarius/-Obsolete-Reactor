@@ -21,13 +21,13 @@ namespace Assets.Reactor.Examples.RandomReactions.Systems
             }
         }
 
-        public IObservable<IEntity> EntityReaction(IEntity entity)
+        public IObservable<IEntity> Impact(IEntity entity)
         {
             var colorComponent = entity.GetComponent<RandomColorComponent>();
             return colorComponent.Color.DistinctUntilChanged().Select(x => entity);
         }
 
-        public void Execute(IEntity entity)
+        public void Reaction(IEntity entity)
         {
             var colorComponent = entity.GetComponent<RandomColorComponent>();
             var cubeComponent = entity.GetComponent<ViewComponent>();

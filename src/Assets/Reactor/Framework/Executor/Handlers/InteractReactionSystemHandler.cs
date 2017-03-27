@@ -7,25 +7,25 @@ using UniRx;
 
 namespace Reactor.Systems.Executor.Handlers
 {
-    public class EntityToEntityReactionSystemHandler : IEntityToEntityReactionSystemHandler
+    public class InteractReactionSystemHandler : IInteractReactionSystemHandler
     {
         public IPoolManager PoolManager { get; private set; }
 
-        public EntityToEntityReactionSystemHandler(IPoolManager poolManager)
+        public InteractReactionSystemHandler(IPoolManager poolManager)
         {
             PoolManager = poolManager;
         }
 
-        public IEnumerable<SubscriptionToken> Setup(IEntityToEntityReactionSystem system)
+        public IEnumerable<SubscriptionToken> Setup(IInteractReactionSystem system)
         {
             var groupAccessor = PoolManager.CreateGroupAccessor(system.TargetGroup);
             return groupAccessor.Entities.ForEachRun(x => ProcessEntity(system, x));
         }
 
-        public SubscriptionToken ProcessEntity(IEntityToEntityReactionSystem system, IEntity entity)
+        public SubscriptionToken ProcessEntity(IInteractReactionSystem system, IEntity entity)
         {
             var hasEntityPredicate = system.TargetGroup is IHasPredicate;
-            var subscription = system.Reaction(entity)
+            var subscription = system.Impact(entity)
                 .Subscribe(x =>
                 {
                     if (hasEntityPredicate)
@@ -33,12 +33,12 @@ namespace Reactor.Systems.Executor.Handlers
                         var groupPredicate = system.TargetGroup as IHasPredicate;
                         if (groupPredicate.CanProcessEntity(entity))
                         {
-                            system.Execute(entity, x);
+                            system.Reaction(entity, x);
                         }
                         return;
                     }
 
-                    system.Execute(entity, x);
+                    system.Reaction(entity, x);
                 });
 
             return new SubscriptionToken(entity, subscription);

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Assets.Reactor.Examples.RandomReactions.Systems
 {
-    public class ColorChangingSystem : IReactToGroupSystem, ISetupSystem
+    public class ColorChangingSystem : IGroupReactionSystem, ISetupSystem
     {
         private readonly float MaxDelay = 5.0f;
         private readonly float MinDelay = 1.0f;
@@ -17,7 +17,7 @@ namespace Assets.Reactor.Examples.RandomReactions.Systems
             get { return new Group(typeof (RandomColorComponent)); }
         }
 
-        public IObservable<IGroupAccessor> ReactToGroup(IGroupAccessor @group)
+        public IObservable<IGroupAccessor> Impact(IGroupAccessor @group)
         {
             return Observable.EveryUpdate().Select(x => @group);
         }
@@ -28,7 +28,7 @@ namespace Assets.Reactor.Examples.RandomReactions.Systems
             randomColorComponent.NextChangeIn = Random.Range(MinDelay, MaxDelay);
         }
 
-        public void Execute(IEntity entity)
+        public void Reaction(IEntity entity)
         {
             var randomColorComponent = entity.GetComponent<RandomColorComponent>();
             randomColorComponent.Elapsed += Time.deltaTime;

@@ -21,13 +21,13 @@ namespace Assets.Reactor.Examples.PooledViews.Systems
             _defaultPool = poolManager.GetPool();
         }
 
-        public IObservable<IEntity> EntityReaction(IEntity entity)
+        public IObservable<IEntity> Impact(IEntity entity)
         {
             var spawnComponent = entity.GetComponent<SpawnerComponent>();
             return Observable.Interval(TimeSpan.FromSeconds(spawnComponent.SpawnRate)).Select(x => entity);
         }
 
-        public void Execute(IEntity entity)
+        public void Reaction(IEntity entity)
         {
             var viewComponent = entity.GetComponent<ViewComponent>();
             var blueprint = new SelfDestructBlueprint(viewComponent.View.transform.position);

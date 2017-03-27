@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Assets.Reactor.Examples.SimpleMovement.Systems
 {
-    public class PlayerControlSystem : IReactToGroupSystem
+    public class PlayerControlSystem : IGroupReactionSystem
     {
         public readonly float MovementSpeed = 2.0f;
 
@@ -23,12 +23,12 @@ namespace Assets.Reactor.Examples.SimpleMovement.Systems
             }
         }
 
-        public IObservable<IGroupAccessor> ReactToGroup(IGroupAccessor @group)
+        public IObservable<IGroupAccessor> Impact(IGroupAccessor @group)
         {
             return Observable.EveryUpdate().Select(x => @group);
         }
 
-        public void Execute(IEntity entity)
+        public void Reaction(IEntity entity)
         {
             var strafeMovement = 0f;
             var forardMovement = 0f;

@@ -2,9 +2,9 @@ using Reactor.Pools;
 
 namespace Reactor.Systems.Executor.Handlers
 {
-    public interface IReactToGroupSystemHandler
+    public interface IGroupReactionSystemHandler
     {
         IPoolManager PoolManager { get; }
-        SubscriptionToken Setup(IReactToGroupSystem system);
+        SubscriptionToken Setup(IGroupReactionSystem system);
     }
 }

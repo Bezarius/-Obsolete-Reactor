@@ -23,9 +23,9 @@ namespace Reactor.Tests
             var mockEntity = Substitute.For<IEntity>();
             var mockSystem = Substitute.For<IEntityReactionSystem>();
             var mockSubscription = Substitute.For<IObservable<IEntity>>();
-            mockSystem.EntityReaction(mockEntity).Returns(mockSubscription);
+            mockSystem.Impact(mockEntity).Returns(mockSubscription);
 
-            var handler = new ReactToEntitySystemHandler(mockPoolManager);
+            var handler = new EntityReactionSystemHandler(mockPoolManager);
             var subscriptionToken = handler.ProcessEntity(mockSystem, mockEntity);
 
             Assert.That(subscriptionToken, Is.Not.Null);
@@ -46,9 +46,9 @@ namespace Reactor.Tests
             mockSystem.TargetGroup.Returns(dummyGroup);
 
             var mockSubscription = Substitute.For<IObservable<IEntity>>();
-            mockSystem.EntityReaction(mockEntity).Returns(mockSubscription);
+            mockSystem.Impact(mockEntity).Returns(mockSubscription);
 
-            var handler = new ReactToEntitySystemHandler(mockPoolManager);
+            var handler = new EntityReactionSystemHandler(mockPoolManager);
 
             var subscriptionTokens = handler.Setup(mockSystem);
             Assert.That(subscriptionTokens.Count(), Is.EqualTo(1));

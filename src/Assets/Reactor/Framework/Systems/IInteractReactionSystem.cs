@@ -3,10 +3,10 @@ using UniRx;
 
 namespace Reactor.Systems
 {
-    public interface IEntityReactionSystem : ISystem
+    public interface IInteractReactionSystem : ISystem
     {
         IObservable<IEntity> Impact(IEntity entity);
 
-        void Reaction(IEntity entity);
+        void Reaction(IEntity sourceEntity, IEntity targetEntity);
     }
 }

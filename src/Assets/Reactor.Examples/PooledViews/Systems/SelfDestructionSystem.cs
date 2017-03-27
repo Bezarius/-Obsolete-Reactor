@@ -20,13 +20,13 @@ namespace Assets.Reactor.Examples.PooledViews.Systems
             _defaultPool = poolManager.GetPool();
         }
 
-        public IObservable<IEntity> EntityReaction(IEntity entity)
+        public IObservable<IEntity> Impact(IEntity entity)
         {
             var selfDestructComponent = entity.GetComponent<SelfDestructComponent>();
             return Observable.Interval(TimeSpan.FromSeconds(selfDestructComponent.Lifetime)).Select(x => entity);
         }
 
-        public void Execute(IEntity entity)
+        public void Reaction(IEntity entity)
         {
             _defaultPool.RemoveEntity(entity);
         }

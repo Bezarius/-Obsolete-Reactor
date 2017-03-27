@@ -8,16 +8,16 @@ using UnityEngine;
 
 namespace Assets.Tests.Scenes.GroupedPerformance.Systems
 {
-    public class GroupRotationSystem : IReactToGroupSystem
+    public class GroupRotationSystem : IGroupReactionSystem
     {
         public IGroup TargetGroup { get { return new Group(typeof(ViewComponent), typeof(RotationComponent));} }
 
-        public IObservable<IGroupAccessor> ReactToGroup(IGroupAccessor @group)
+        public IObservable<IGroupAccessor> Impact(IGroupAccessor @group)
         {
             return Observable.EveryUpdate().Select(x => @group);
         }
 
-        public void Execute(IEntity entity)
+        public void Reaction(IEntity entity)
         {
             var rotationComponent = entity.GetComponent<RotationComponent>();
             var viewComponent = entity.GetComponent<ViewComponent>();

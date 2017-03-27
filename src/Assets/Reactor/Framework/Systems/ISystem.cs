@@ -1,4 +1,3 @@
-using Reactor.Entities;
 using Reactor.Groups;
 
 namespace Reactor.Systems

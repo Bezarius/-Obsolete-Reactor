@@ -13,7 +13,7 @@ namespace Reactor.Extensions
 
         public static bool IsSystemReactive(this ISystem system)
         {
-            return system is IEntityReactionSystem || system is IReactToGroupSystem || system is IEntityToEntityReactionSystem;
+            return system is IEntityReactionSystem || system is IGroupReactionSystem || system is IInteractReactionSystem;
         }
     }
 }

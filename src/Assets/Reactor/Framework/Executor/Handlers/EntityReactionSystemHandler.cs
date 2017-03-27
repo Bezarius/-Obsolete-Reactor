@@ -7,11 +7,11 @@ using UniRx;
 
 namespace Reactor.Systems.Executor.Handlers
 {
-    public class ReactToEntitySystemHandler : IEntityReactionSystemHandler
+    public class EntityReactionSystemHandler : IEntityReactionSystemHandler
     {
         public IPoolManager PoolManager { get; private set; }
 
-        public ReactToEntitySystemHandler(IPoolManager poolManager)
+        public EntityReactionSystemHandler(IPoolManager poolManager)
         {
             PoolManager = poolManager;
         }
@@ -25,7 +25,7 @@ namespace Reactor.Systems.Executor.Handlers
         public SubscriptionToken ProcessEntity(IEntityReactionSystem system, IEntity entity)
         {
             var hasEntityPredicate = system.TargetGroup is IHasPredicate;
-            var subscription = system.EntityReaction(entity)
+            var subscription = system.Impact(entity)
                 .Subscribe(x =>
                 {
                     if (hasEntityPredicate)
@@ -33,12 +33,12 @@ namespace Reactor.Systems.Executor.Handlers
                         var groupPredicate = system.TargetGroup as IHasPredicate;
                         if (groupPredicate.CanProcessEntity(x))
                         {
-                            system.Execute(x);
+                            system.Reaction(x);
                         }
                         return;
                     }
 
-                    system.Execute(x);
+                    system.Reaction(x);
                 });
 
             return new SubscriptionToken(entity, subscription);

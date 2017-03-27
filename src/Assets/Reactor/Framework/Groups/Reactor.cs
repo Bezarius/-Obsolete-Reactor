@@ -13,7 +13,8 @@ namespace Reactor.Groups
     {
         ISetupSystem[] SetupSystems { get; }
         IEntityReactionSystem[] EntityReactionSystems { get; }
-        IEntityToEntityReactionSystem[] EntityToEntityReactionSystems { get; }
+        IGroupReactionSystem[] GroupReactionSystems { get; }
+        IInteractReactionSystem[] InteractReactionSystems { get; }
         ITeardownSystem[] TeardownSystems { get; }
     }
 
@@ -25,7 +26,8 @@ namespace Reactor.Groups
 
         public ISetupSystem[] SetupSystems { get; private set; }
         public IEntityReactionSystem[] EntityReactionSystems { get; private set; }
-        public IEntityToEntityReactionSystem[] EntityToEntityReactionSystems { get; private set; }
+        public IGroupReactionSystem[] GroupReactionSystems { get; private set; }
+        public IInteractReactionSystem[] InteractReactionSystems { get; private set; }
         public ITeardownSystem[] TeardownSystems { get; private set; }
 
         public ReactorConnection(SystemReactor upReactor, SystemReactor downReactor)
@@ -34,7 +36,8 @@ namespace Reactor.Groups
             DownReactor = downReactor;
             SetupSystems = upReactor.SetupSystems.Except(downReactor.SetupSystems).ToArray();
             EntityReactionSystems = upReactor.EntityReactionSystems.Except(downReactor.EntityReactionSystems).ToArray();
-            EntityToEntityReactionSystems = upReactor.EntityToEntityReactionSystems.Except(downReactor.EntityToEntityReactionSystems).ToArray();
+            GroupReactionSystems = upReactor.GroupReactionSystems.Except(downReactor.GroupReactionSystems).ToArray();
+            InteractReactionSystems = upReactor.InteractReactionSystems.Except(downReactor.InteractReactionSystems).ToArray();
             TeardownSystems = upReactor.TeardownSystems.Except(downReactor.TeardownSystems).ToArray();
         }
     }
@@ -46,7 +49,8 @@ namespace Reactor.Groups
 
         public ISetupSystem[] SetupSystems { get; private set; }
         public IEntityReactionSystem[] EntityReactionSystems { get; private set; }
-        public IEntityToEntityReactionSystem[] EntityToEntityReactionSystems { get; private set; }
+        public IGroupReactionSystem[] GroupReactionSystems { get; private set; }
+        public IInteractReactionSystem[] InteractReactionSystems { get; private set; }
         public ITeardownSystem[] TeardownSystems { get; private set; }
 
         private readonly Dictionary<Type, ReactorConnection> _connections = new Dictionary<Type, ReactorConnection>();
@@ -60,7 +64,8 @@ namespace Reactor.Groups
 
             SetupSystems = systems.OfType<ISetupSystem>().OrderByPriority().ToArray();
             EntityReactionSystems = systems.OfType<IEntityReactionSystem>().OrderByPriority().ToArray();
-            EntityToEntityReactionSystems = systems.OfType<IEntityToEntityReactionSystem>().OrderByPriority().ToArray();
+            GroupReactionSystems = systems.OfType<IGroupReactionSystem>().OrderByPriority().ToArray();
+            InteractReactionSystems = systems.OfType<IInteractReactionSystem>().OrderByPriority().ToArray();
             TeardownSystems = systems.OfType<ITeardownSystem>().OrderByPriority().ToArray();
         }
 

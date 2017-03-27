@@ -24,9 +24,9 @@ namespace Reactor.Unity.Installers
             Container.Bind<IPoolManager>().To<PoolManager>().AsSingle();
             Container.Bind<IViewHandler>().To<ViewHandler>().AsSingle();
 
-            Container.Bind<IEntityToEntityReactionSystemHandler>().To<EntityToEntityReactionSystemHandler>();
-            Container.Bind<IEntityReactionSystemHandler>().To<ReactToEntitySystemHandler>();
-            Container.Bind<IReactToGroupSystemHandler>().To<ReactToGroupSystemHandler>();
+            Container.Bind<IInteractReactionSystemHandler>().To<InteractReactionSystemHandler>();
+            Container.Bind<IEntityReactionSystemHandler>().To<EntityReactionSystemHandler>();
+            Container.Bind<IGroupReactionSystemHandler>().To<GroupReactionSystemHandler>();
             Container.Bind<ISetupSystemHandler>().To<SetupSystemHandler>();
             Container.Bind<IManualSystemHandler>().To<ManualSystemHandler>();
 

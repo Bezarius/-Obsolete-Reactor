@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Assets.Reactor.Examples.CustomGameObjectHandling.Systems
 {
-    public class CameraFollowSystem : ISetupSystem, IReactToGroupSystem
+    public class CameraFollowSystem : ISetupSystem, IGroupReactionSystem
     {
         public IGroup TargetGroup
         {
@@ -26,12 +26,12 @@ namespace Assets.Reactor.Examples.CustomGameObjectHandling.Systems
             cameraFollows.Camera = Camera.main;
         }
 
-        public IObservable<IGroupAccessor> ReactToGroup(IGroupAccessor @group)
+        public IObservable<IGroupAccessor> Impact(IGroupAccessor @group)
         {
             return Observable.EveryUpdate().Select(x => @group);
         }
 
-        public void Execute(IEntity entity)
+        public void Reaction(IEntity entity)
         {
             var entityPosition = entity.GetComponent<CustomViewComponent>().CustomView.transform.position;
             var trailPosition = entityPosition + (Vector3.back*5.0f);

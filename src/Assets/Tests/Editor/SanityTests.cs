@@ -21,9 +21,9 @@ namespace Reactor.Tests
             var poolFactory = new DefaultPoolFactory(entityFactory, messageBroker);
             var groupAccessorFactory = new DefaultGroupAccessorFactory(messageBroker);
             var poolManager = new PoolManager(messageBroker, poolFactory, groupAccessorFactory);
-            var reactsToEntityHandler = new ReactToEntitySystemHandler(poolManager);
-            var reactsToGroupHandler = new ReactToGroupSystemHandler(poolManager);
-            var reactToComponentHandler = new EntityToEntityReactionSystemHandler(poolManager);
+            var reactsToEntityHandler = new EntityReactionSystemHandler(poolManager);
+            var reactsToGroupHandler = new GroupReactionSystemHandler(poolManager);
+            var reactToComponentHandler = new InteractReactionSystemHandler(poolManager);
             var manualSystemHandler = new ManualSystemHandler(poolManager);
             var setupHandler = new SetupSystemHandler(poolManager);
             return new SystemExecutor(poolManager, messageBroker, reactsToEntityHandler, 

@@ -13,10 +13,10 @@ namespace Assets.Reactor.Examples.GroupFilters.Systems
     {
         public IGroup TargetGroup { get { return new HasScoreGroup(); } }
 
-        public IObservable<IEntity> EntityReaction(IEntity entity)
+        public IObservable<IEntity> Impact(IEntity entity)
         { return Observable.Interval(TimeSpan.FromSeconds(1)).Select(x => entity); }
 
-        public void Execute(IEntity entity)
+        public void Reaction(IEntity entity)
         {
             var scoreComponent = entity.GetComponent<HasScoreComponent>();
             var randomIncrement = Random.Range(1, 5);

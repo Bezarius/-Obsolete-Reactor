@@ -39,7 +39,7 @@ namespace Reactor.Unity.Helpers
 
             EditorGUILayout.TextField("Group Systems");
             EditorGUILayout.Space();
-            foreach (var system in executor.Systems.OfType<IReactToGroupSystem>())
+            foreach (var system in executor.Systems.OfType<IGroupReactionSystem>())
             {
                 EditorGUILayout.BeginVertical();
                 EditorGUILayout.LabelField("System: " + system.GetType().Name);
@@ -65,7 +65,7 @@ namespace Reactor.Unity.Helpers
 
             EditorGUILayout.TextField("Entity to Entity Systems");
             EditorGUILayout.Space();
-            foreach (var system in executor.Systems.OfType<IEntityToEntityReactionSystem>())
+            foreach (var system in executor.Systems.OfType<IInteractReactionSystem>())
             {
                 EditorGUILayout.BeginVertical();
                 EditorGUILayout.LabelField("System: " + system.GetType().Name);
