@@ -15,7 +15,7 @@ namespace Reactor.Systems.Executor
     {
         private readonly IList<ISystem> _systems;
         private readonly IList<IDisposable> _eventSubscriptions;
-        private readonly Dictionary<ISystem, IList<SubscriptionToken>> _systemSubscriptions;
+        private readonly Dictionary<ISystem, Dictionary<IEntity, SubscriptionToken>> _systemSubscriptions;
         private readonly List<SystemReactor> _systemReactors = new List<SystemReactor>();
         private SystemReactor _emptyReactor;
 
@@ -57,7 +57,7 @@ namespace Reactor.Systems.Executor
             var removeComponentSubscription = EventSystem.Receive<ComponentRemovedEvent>().Subscribe(OnEntityComponentRemoved);
 
             _systems = new List<ISystem>();
-            _systemSubscriptions = new Dictionary<ISystem, IList<SubscriptionToken>>();
+            _systemSubscriptions = new Dictionary<ISystem, Dictionary<IEntity, SubscriptionToken>>();
             _eventSubscriptions = new List<IDisposable>
             {
                 addEntitySubscription,
@@ -91,6 +91,7 @@ namespace Reactor.Systems.Executor
 
         public void OnEntityAddedToPool(EntityAddedEvent args)
         {
+            /*
             var entity = args.Entity;
             var set = new HashSet<Type>(args.Entity.Components.Select(x=>x.GetType()));
             if (set.Count > 0)
@@ -98,7 +99,7 @@ namespace Reactor.Systems.Executor
                 var reactor = this.GetSystemReactor(set);
                 entity.Reactor = reactor;
                 AddSystemsToEntity(entity, reactor);
-            }
+            }*/
         }
 
         public void OnEntityRemovedFromPool(EntityRemovedEvent args)
@@ -117,7 +118,7 @@ namespace Reactor.Systems.Executor
 
             if (_systemSubscriptions.ContainsKey(system))
             {
-                _systemSubscriptions[system].DisposeAll();
+                _systemSubscriptions[system].Values.DisposeAll();
                 _systemSubscriptions.Remove(system);
             }
         }
@@ -156,7 +157,7 @@ namespace Reactor.Systems.Executor
                 ManualSystemHandler.Start(system as IManualSystem);
             }
 
-            _systemSubscriptions.Add(system, subscriptionList);
+            _systemSubscriptions.Add(system, subscriptionList.ToDictionary(x=>x.AssociatedObject as IEntity));
         }
 
         public SystemReactor GetSystemReactor(HashSet<Type> targetTypes)
@@ -187,7 +188,7 @@ namespace Reactor.Systems.Executor
                 var subscription = SetupSystemHandler.ProcessEntity(system, entity);
                 if (subscription != null)
                 {
-                    _systemSubscriptions[system].Add(subscription);
+                    _systemSubscriptions[system].Add(entity, subscription);
                 }
             }
 
@@ -197,7 +198,7 @@ namespace Reactor.Systems.Executor
                 var subscription = ReactToEntitySystemHandler.ProcessEntity(system, entity);
                 if (subscription != null)
                 {
-                    _systemSubscriptions[system].Add(subscription);
+                    _systemSubscriptions[system].Add(entity, subscription);
                 }
             }
 
@@ -207,7 +208,7 @@ namespace Reactor.Systems.Executor
                 var subscription = ReactToComponentSystemHandler.ProcessEntity(system, entity);
                 if (subscription != null)
                 {
-                    _systemSubscriptions[system].Add(subscription);
+                    _systemSubscriptions[system].Add(entity,subscription);
                 }
             }
         }
@@ -216,14 +217,9 @@ namespace Reactor.Systems.Executor
         {
             //todo: optimize. Method very slow 
 
-            var subscriptionTokens = _systemSubscriptions[system]
-                    .Where(x => x.AssociatedObject == entity).ToArray();
-
-            if (!subscriptionTokens.Any()) { return; }
-            {
-                _systemSubscriptions[system].RemoveAll(subscriptionTokens);
-                subscriptionTokens.DisposeAll();
-            }
+            var subscriptionTokens = _systemSubscriptions[system][entity];
+            subscriptionTokens.Disposable.Dispose();
+            _systemSubscriptions[system].Remove(entity);
         }
 
         public void RemoveSystemsFromEntity(IEntity entity, ISystemContainer container)
@@ -261,7 +257,7 @@ namespace Reactor.Systems.Executor
 
         public void Dispose()
         {
-            _systemSubscriptions.ForEachRun(x => x.Value.DisposeAll());
+            _systemSubscriptions.ForEachRun(x => x.Value.Values.DisposeAll());
             _eventSubscriptions.DisposeAll();
         }
     }

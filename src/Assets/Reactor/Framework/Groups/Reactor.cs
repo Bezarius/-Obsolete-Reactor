@@ -92,8 +92,7 @@ namespace Reactor.Groups
             ReactorConnection connection;
             if (!_connections.TryGetValue(componenType, out connection))
             {
-                var set = new HashSet<Type>(TargetTypes) { componenType };
-                set.Remove(componenType);
+                var set = new HashSet<Type>(TargetTypes);
                 SystemReactor reactor = _systemExecutor.GetSystemReactor(set);
                 connection = new ReactorConnection(this, reactor);
                 this.AddReactorsConnection(componenType, connection, reactor);
