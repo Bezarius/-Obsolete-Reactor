@@ -10,6 +10,8 @@ namespace Assets.Reactor.Examples.RandomReactions.Components
         public float Elapsed { get; set; }
         public float NextChangeIn { get; set; }
 
+
+
         public RandomColorComponent()
         {
             Color = new ReactiveProperty<Color>();

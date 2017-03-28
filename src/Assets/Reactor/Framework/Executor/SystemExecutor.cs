@@ -129,7 +129,9 @@ namespace Reactor.Systems.Executor
                 _entitySubscribtionsOnSystems.Add(system, SetupSystemHandler.Setup((ISetupSystem)system)
                     .ToDictionary(x => x.AssociatedObject as IEntity));
             }
-            else if (system is IGroupReactionSystem)
+
+
+            if (system is IGroupReactionSystem)
             {
                 _nonEntitySubscriptions.Add(system, GroupReactionSystemHandler.Setup((IGroupReactionSystem)system));
             }

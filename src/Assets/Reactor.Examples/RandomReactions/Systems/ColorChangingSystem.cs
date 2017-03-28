@@ -17,15 +17,15 @@ namespace Assets.Reactor.Examples.RandomReactions.Systems
             get { return new Group(typeof (RandomColorComponent)); }
         }
 
-        public IObservable<IGroupAccessor> Impact(IGroupAccessor @group)
-        {
-            return Observable.EveryUpdate().Select(x => @group);
-        }
-
         public void Setup(IEntity entity)
         {
             var randomColorComponent = entity.GetComponent<RandomColorComponent>();
             randomColorComponent.NextChangeIn = Random.Range(MinDelay, MaxDelay);
+        }
+
+        public IObservable<IGroupAccessor> Impact(IGroupAccessor @group)
+        {
+            return Observable.EveryUpdate().Select(x => @group);
         }
 
         public void Reaction(IEntity entity)
@@ -34,7 +34,9 @@ namespace Assets.Reactor.Examples.RandomReactions.Systems
             randomColorComponent.Elapsed += Time.deltaTime;
 
             if (!(randomColorComponent.Elapsed >= randomColorComponent.NextChangeIn))
-            { return;}
+            {
+                return;
+            }
 
             randomColorComponent.Elapsed -= randomColorComponent.NextChangeIn;
             randomColorComponent.NextChangeIn = Random.Range(MinDelay, MaxDelay);
