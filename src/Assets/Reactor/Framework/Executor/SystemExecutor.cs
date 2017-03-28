@@ -15,7 +15,8 @@ namespace Reactor.Systems.Executor
     {
         private readonly IList<ISystem> _systems;
         private readonly IList<IDisposable> _eventSubscriptions;
-        private readonly Dictionary<ISystem, Dictionary<IEntity, SubscriptionToken>> _systemSubscriptions;
+        private readonly Dictionary<ISystem, Dictionary<IEntity, SubscriptionToken>> _entitySubscribtionsOnSystems;
+        private readonly Dictionary<ISystem, SubscriptionToken> _nonEntitySubscriptions;
         private readonly List<SystemReactor> _systemReactors = new List<SystemReactor>();
 
         private SystemReactor _emptyReactor;
@@ -57,7 +58,8 @@ namespace Reactor.Systems.Executor
             var removeComponentSubscription = EventSystem.Receive<ComponentRemovedEvent>().Subscribe(OnEntityComponentRemoved);
 
             _systems = new List<ISystem>();
-            _systemSubscriptions = new Dictionary<ISystem, Dictionary<IEntity, SubscriptionToken>>();
+            _entitySubscribtionsOnSystems = new Dictionary<ISystem, Dictionary<IEntity, SubscriptionToken>>();
+            _nonEntitySubscriptions = new Dictionary<ISystem, SubscriptionToken>();
             _eventSubscriptions = new List<IDisposable>
             {
                 addEntitySubscription,
@@ -78,7 +80,7 @@ namespace Reactor.Systems.Executor
             }
             else
             {
-                var reactor = this.GetSystemReactor(new HashSet<Type> {type});
+                var reactor = this.GetSystemReactor(new HashSet<Type> { type });
                 entity.Reactor = reactor;
                 AddSystemsToEntity(entity, reactor);
             }
@@ -102,60 +104,55 @@ namespace Reactor.Systems.Executor
         {
             _systems.Remove(system);
 
-            if (system is IManualSystem)
+            var manualSystem = system as IManualSystem;
+            if (manualSystem != null)
             {
-                ManualSystemHandler.Stop(system as IManualSystem);
+                ManualSystemHandler.Stop(manualSystem);
             }
 
-            if (_systemSubscriptions.ContainsKey(system))
+            if (_entitySubscribtionsOnSystems.ContainsKey(system))
             {
-                _systemSubscriptions[system].Values.DisposeAll();
-                _systemSubscriptions.Remove(system);
+                _entitySubscribtionsOnSystems[system].Values.DisposeAll();
+                _entitySubscribtionsOnSystems.Remove(system);
+            }else if (_nonEntitySubscriptions.ContainsKey(system))
+            {
+                _nonEntitySubscriptions[system].Disposable.Dispose();
+                _nonEntitySubscriptions.Remove(system);
             }
         }
 
         public void AddSystem(ISystem system)
         {
             _systems.Add(system);
-            var subscriptionList = new List<SubscriptionToken>();
-
             if (system is ISetupSystem)
             {
-                var subscriptions = SetupSystemHandler.Setup(system as ISetupSystem);
-                subscriptionList.AddRange(subscriptions);
+                _entitySubscribtionsOnSystems.Add(system, SetupSystemHandler.Setup((ISetupSystem)system)
+                    .ToDictionary(x => x.AssociatedObject as IEntity));
             }
-
-            if (system is IGroupReactionSystem)
+            else if (system is IGroupReactionSystem)
             {
-                var subscription = GroupReactionSystemHandler.Setup(system as IGroupReactionSystem);
-                subscriptionList.Add(subscription);
+                _nonEntitySubscriptions.Add(system, GroupReactionSystemHandler.Setup((IGroupReactionSystem)system));
             }
-
-            if (system is IEntityReactionSystem)
+            else if (system is IEntityReactionSystem)
             {
-                var subscriptions = EntityReactionSystemHandler.Setup(system as IEntityReactionSystem);
-                subscriptionList.AddRange(subscriptions);
+                _entitySubscribtionsOnSystems.Add(system, EntityReactionSystemHandler.Setup((IEntityReactionSystem)system)
+                    .ToDictionary(x => x.AssociatedObject as IEntity));
             }
-
-            if (system is IInteractReactionSystem)
+            else if (system is IInteractReactionSystem)
             {
-                var subscriptions = InteractReactionSystemHandler.Setup(system as IInteractReactionSystem);
-                subscriptionList.AddRange(subscriptions);
+                _entitySubscribtionsOnSystems.Add(system, InteractReactionSystemHandler.Setup((IInteractReactionSystem)system)
+                    .ToDictionary(x => x.AssociatedObject as IEntity));
             }
-
-            if (system is IManualSystem)
+            else if (system is IManualSystem)
             {
-                ManualSystemHandler.Start(system as IManualSystem);
+                ManualSystemHandler.Start((IManualSystem)system);
             }
-
-            _systemSubscriptions.Add(system, subscriptionList.ToDictionary(x=>x.AssociatedObject as IEntity));
         }
 
         public SystemReactor GetSystemReactor(HashSet<Type> targetTypes)
         {
             if (targetTypes.Count > 0)
             {
-                //new HashSet<int>(first).SetEquals(second)
                 SystemReactor reactor =
                     _systemReactors.FirstOrDefault(
                         x => x.TargetTypes.SetEquals(targetTypes));
@@ -179,7 +176,7 @@ namespace Reactor.Systems.Executor
                 var subscription = SetupSystemHandler.ProcessEntity(system, entity);
                 if (subscription != null)
                 {
-                    _systemSubscriptions[system].Add(entity, subscription);
+                    _entitySubscribtionsOnSystems[system].Add(entity, subscription);
                 }
             }
 
@@ -189,7 +186,7 @@ namespace Reactor.Systems.Executor
                 var subscription = EntityReactionSystemHandler.ProcessEntity(system, entity);
                 if (subscription != null)
                 {
-                    _systemSubscriptions[system].Add(entity, subscription);
+                    _entitySubscribtionsOnSystems[system].Add(entity, subscription);
                 }
             }
 
@@ -199,18 +196,16 @@ namespace Reactor.Systems.Executor
                 var subscription = InteractReactionSystemHandler.ProcessEntity(system, entity);
                 if (subscription != null)
                 {
-                    _systemSubscriptions[system].Add(entity,subscription);
+                    _entitySubscribtionsOnSystems[system].Add(entity, subscription);
                 }
             }
         }
 
         private void RemoveEntitySubscriptionFromSystem(IEntity entity, ISystem system)
         {
-            //todo: optimize. Method very slow 
-
-            var subscriptionTokens = _systemSubscriptions[system][entity];
+            var subscriptionTokens = _entitySubscribtionsOnSystems[system][entity];
             subscriptionTokens.Disposable.Dispose();
-            _systemSubscriptions[system].Remove(entity);
+            _entitySubscribtionsOnSystems[system].Remove(entity);
         }
 
         public void RemoveSystemsFromEntity(IEntity entity, ISystemContainer container)
@@ -237,18 +232,21 @@ namespace Reactor.Systems.Executor
 
         public int GetSubscriptionCountForSystem(ISystem system)
         {
-            if (!_systemSubscriptions.ContainsKey(system)) { return 0; }
-            return _systemSubscriptions[system].Count;
+            if (!_entitySubscribtionsOnSystems.ContainsKey(system))
+            {
+                return 0;
+            }
+            return _entitySubscribtionsOnSystems[system].Count;
         }
 
         public int GetTotalSubscriptions()
         {
-            return _systemSubscriptions.Values.Sum(x => x.Count);
+            return _entitySubscribtionsOnSystems.Values.Sum(x => x.Count);
         }
 
         public void Dispose()
         {
-            _systemSubscriptions.ForEachRun(x => x.Value.Values.DisposeAll());
+            _entitySubscribtionsOnSystems.ForEachRun(x => x.Value.Values.DisposeAll());
             _eventSubscriptions.DisposeAll();
         }
     }

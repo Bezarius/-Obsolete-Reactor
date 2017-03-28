@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Assets.Reactor.Examples.SimpleMovement.Systems
 {
-    public class CameraFollowSystem : ISetupSystem, IGroupReactionSystem
+    public class CameraFollowSetupSystem : ISetupSystem
     {
         public IGroup TargetGroup
         {
@@ -25,6 +25,21 @@ namespace Assets.Reactor.Examples.SimpleMovement.Systems
         {
             var cameraFollows = entity.GetComponent<CameraFollowsComponent>();
             cameraFollows.Camera = Camera.main;
+        }
+    }
+
+
+    public class CameraFollowSystem : IGroupReactionSystem
+    {
+        public IGroup TargetGroup
+        {
+            get
+            {
+                return new GroupBuilder()
+                    .WithComponent<CameraFollowsComponent>()
+                    .WithComponent<ViewComponent>()
+                    .Build();
+            }
         }
 
         public IObservable<IGroupAccessor> Impact(IGroupAccessor @group)
