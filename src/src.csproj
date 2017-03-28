@@ -13,11 +13,13 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile></CompilerResponseFile>
+    <CompilerResponseFile>
+    </CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows64:19</UnityBuildTarget>
     <UnityVersion>5.5.1f1</UnityVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <LangVersion Condition=" '$(VisualStudioVersion)' != '10.0' ">4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -218,7 +220,6 @@
     <Compile Include="Assets\Reactor\Framework\Pools\PoolManager.cs" />
     <Compile Include="Assets\Reactor\Framework\Systems\Custom\EventReactionSystem.cs" />
     <Compile Include="Assets\Reactor\Framework\Systems\IEntityReactionSystem.cs" />
-    <Compile Include="Assets\Reactor\Framework\Systems\IEveryUpdateEntityReactionSystem.cs" />
     <Compile Include="Assets\Reactor\Framework\Systems\IGroupReactionSystem.cs" />
     <Compile Include="Assets\Reactor\Framework\Systems\IInteractReactionSystem.cs" />
     <Compile Include="Assets\Reactor\Framework\Systems\IManualSystem.cs" />
