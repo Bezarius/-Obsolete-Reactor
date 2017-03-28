@@ -23,7 +23,9 @@ namespace Assets.Reactor.Framework.Groups.Filtration
         }
 
         private void SetupTriggers()
-        { _triggerSubscription = TriggerOnChange().Subscribe(x => _needsUpdate = true); }
+        {
+            _triggerSubscription = TriggerOnChange().Subscribe(x => _needsUpdate = true);
+        }
 
         public IEnumerable<T> Filter()
         {
