@@ -1,12 +1,9 @@
 ﻿using Assets.Reactor.Examples.SceneFirstSetup.Components;
 using Reactor.Entities;
-using Reactor.Events;
 using Reactor.Extensions;
 using Reactor.Groups;
-using Reactor.Pools;
 using Reactor.Unity.Systems;
 using UnityEngine;
-using Zenject;
 
 namespace Assets.Reactor.Examples.SceneFirstSetup.ViewResolvers
 {

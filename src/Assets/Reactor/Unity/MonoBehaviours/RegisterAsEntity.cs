@@ -56,7 +56,7 @@ namespace Reactor.Unity.MonoBehaviours
 
         private void SetupEntityComponents(IEntity entity)
         {
-            for (var i = 0; i < Components.Count(); i++)
+            for (var i = 0; i < Components.Count; i++)
             {
                 var typeName = Components[i];
                 var type = Type.GetType(typeName);
