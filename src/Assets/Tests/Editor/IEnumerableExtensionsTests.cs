@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using EcsRx.Extensions;
-using EcsRx.Systems;
-using EcsRx.Tests.Systems;
+using Reactor.Extensions;
+using Reactor.Systems;
+using Reactor.Tests.Systems;
 using NUnit.Framework;
 
-namespace EcsRx.Tests
+namespace Reactor.Tests
 {
     [TestFixture]
     public class IEnumerableExtensionsTests

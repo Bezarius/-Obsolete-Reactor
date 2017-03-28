@@ -1,4 +1,4 @@
-﻿using EcsRx.Components;
+﻿using Reactor.Components;
 
 namespace Assets.Tests.Scenes.GroupedPerformance.Components
 {

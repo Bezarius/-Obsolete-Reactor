@@ -1,15 +1,15 @@
-﻿using EcsRx.Entities;
-using EcsRx.Events;
-using EcsRx.Groups;
-using EcsRx.Pools;
-using EcsRx.Systems.Executor;
-using EcsRx.Systems.Executor.Handlers;
-using EcsRx.Tests.Components;
-using EcsRx.Tests.Systems;
+﻿using Reactor.Entities;
+using Reactor.Events;
+using Reactor.Groups;
+using Reactor.Pools;
+using Reactor.Systems.Executor;
+using Reactor.Systems.Executor.Handlers;
+using Reactor.Tests.Components;
+using Reactor.Tests.Systems;
 using NUnit.Framework;
 using UniRx;
 
-namespace EcsRx.Tests
+namespace Reactor.Tests
 {
     [TestFixture]
     public class SanityTests
@@ -21,13 +21,13 @@ namespace EcsRx.Tests
             var poolFactory = new DefaultPoolFactory(entityFactory, messageBroker);
             var groupAccessorFactory = new DefaultGroupAccessorFactory(messageBroker);
             var poolManager = new PoolManager(messageBroker, poolFactory, groupAccessorFactory);
-            var reactsToEntityHandler = new ReactToEntitySystemHandler(poolManager);
-            var reactsToGroupHandler = new ReactToGroupSystemHandler(poolManager);
-            var reactsToDataHandler = new ReactToDataSystemHandler(poolManager);
+            var reactsToEntityHandler = new EntityReactionSystemHandler(poolManager);
+            var reactsToGroupHandler = new GroupReactionSystemHandler(poolManager);
+            var reactToComponentHandler = new InteractReactionSystemHandler(poolManager);
             var manualSystemHandler = new ManualSystemHandler(poolManager);
             var setupHandler = new SetupSystemHandler(poolManager);
             return new SystemExecutor(poolManager, messageBroker, reactsToEntityHandler, 
-                reactsToGroupHandler, setupHandler, reactsToDataHandler, manualSystemHandler);
+                reactsToGroupHandler, setupHandler, reactToComponentHandler, manualSystemHandler);
         }
 
         [Test]

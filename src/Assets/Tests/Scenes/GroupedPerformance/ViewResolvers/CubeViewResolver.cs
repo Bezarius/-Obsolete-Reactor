@@ -1,7 +1,7 @@
-﻿using EcsRx.Entities;
-using EcsRx.Events;
-using EcsRx.Pools;
-using EcsRx.Unity.Systems;
+﻿using Reactor.Entities;
+using Reactor.Events;
+using Reactor.Pools;
+using Reactor.Unity.Systems;
 using UnityEngine;
 using Zenject;
 

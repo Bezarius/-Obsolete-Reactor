@@ -1,13 +1,13 @@
-using EcsRx.Entities;
-using EcsRx.Groups;
-using EcsRx.Pools;
-using EcsRx.Systems;
-using EcsRx.Systems.Executor.Handlers;
+using Reactor.Entities;
+using Reactor.Groups;
+using Reactor.Pools;
+using Reactor.Systems;
+using Reactor.Systems.Executor.Handlers;
 using NSubstitute;
 using NUnit.Framework;
 using UniRx;
 
-namespace EcsRx.Tests
+namespace Reactor.Tests
 {
     [TestFixture]
     public class SetupSystemHandlerTests

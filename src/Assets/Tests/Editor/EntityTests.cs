@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using EcsRx.Components;
-using EcsRx.Entities;
-using EcsRx.Events;
-using EcsRx.Tests.Components;
+using Reactor.Components;
+using Reactor.Entities;
+using Reactor.Events;
+using Reactor.Pools;
+using Reactor.Tests.Components;
 using NSubstitute;
 using NUnit.Framework;
 using UniRx;
 
-namespace EcsRx.Tests
+namespace Reactor.Tests
 {
     [TestFixture]
     public class EntityTests
@@ -18,7 +19,8 @@ namespace EcsRx.Tests
         public void should_correctly_add_component()
         {
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var mockPool = Substitute.For<IPool>();
+            var entity = new Entity(Guid.NewGuid(), mockPool, mockEventSystem);
             var dummyComponent = Substitute.For<IComponent>();
 
             entity.AddComponent(dummyComponent);
@@ -30,7 +32,8 @@ namespace EcsRx.Tests
         public void should_correctly_raise_event_when_adding_component()
         {
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var mockPool = Substitute.For<IPool>();
+            var entity = new Entity(Guid.NewGuid(), mockPool, mockEventSystem);
             var dummyComponent = Substitute.For<IComponent>();
 
             entity.AddComponent(dummyComponent);
@@ -42,7 +45,8 @@ namespace EcsRx.Tests
         public void should_correctly_remove_component()
         {
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var mockPool = Substitute.For<IPool>();
+            var entity = new Entity(Guid.NewGuid(), mockPool, mockEventSystem);
             var dummyComponent = Substitute.For<IComponent>();
             entity.AddComponent(dummyComponent);
             
@@ -55,7 +59,8 @@ namespace EcsRx.Tests
         public void should_correctly_raise_event_when_removing_component()
         {
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var mockPool = Substitute.For<IPool>();
+            var entity = new Entity(Guid.NewGuid(), mockPool, mockEventSystem);
             var dummyComponent = Substitute.For<IComponent>();
             entity.AddComponent(dummyComponent);
             entity.RemoveComponent(dummyComponent);
@@ -67,7 +72,8 @@ namespace EcsRx.Tests
         public void should_return_true_when_entity_has_component()
         {
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var mockPool = Substitute.For<IPool>();
+            var entity = new Entity(Guid.NewGuid(), mockPool, mockEventSystem);
             var dummyComponent = new TestComponentOne();
             entity.AddComponent(dummyComponent);
 
@@ -78,7 +84,8 @@ namespace EcsRx.Tests
         public void should_return_true_when_entity_matches_all_components()
         {
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var mockPool = Substitute.For<IPool>();
+            var entity = new Entity(Guid.NewGuid(), mockPool, mockEventSystem);
             entity.AddComponent(new TestComponentOne());
             entity.AddComponent(new TestComponentTwo());
 
@@ -89,7 +96,8 @@ namespace EcsRx.Tests
         public void should_return_false_when_entity_does_not_match_all_components()
         {
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var mockPool = Substitute.For<IPool>();
+            var entity = new Entity(Guid.NewGuid(), mockPool, mockEventSystem);
             entity.AddComponent(new TestComponentOne());
 
             Assert.IsFalse(entity.HasComponents(typeof(TestComponentOne), typeof(TestComponentTwo)));
@@ -99,7 +107,8 @@ namespace EcsRx.Tests
         public void should_return_false_when_entity_is_missing_component()
         {
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var mockPool = Substitute.For<IPool>();
+            var entity = new Entity(Guid.NewGuid(), mockPool, mockEventSystem);
 
             Assert.IsFalse(entity.HasComponent<TestComponentOne>());
         }
@@ -108,7 +117,8 @@ namespace EcsRx.Tests
         public void should_throw_error_when_adding_component_that_already_exists()
         {
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var mockPool = Substitute.For<IPool>();
+            var entity = new Entity(Guid.NewGuid(), mockPool, mockEventSystem);
             var dummyComponent = Substitute.For<IComponent>();
             entity.AddComponent(dummyComponent);
 
@@ -119,7 +129,8 @@ namespace EcsRx.Tests
         public void should_not_throw_error_when_removing_non_existent_component_with_generic()
         {
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var mockPool = Substitute.For<IPool>();
+            var entity = new Entity(Guid.NewGuid(), mockPool, mockEventSystem);
             entity.RemoveComponent<TestComponentOne>();
         }
 
@@ -127,7 +138,8 @@ namespace EcsRx.Tests
         public void should_not_throw_error_when_removing_non_existent_component_with_instance()
         {
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var mockPool = Substitute.For<IPool>();
+            var entity = new Entity(Guid.NewGuid(), mockPool, mockEventSystem);
             var dummyComponent = new TestComponentOne();
 
             entity.RemoveComponent(dummyComponent);
@@ -137,8 +149,9 @@ namespace EcsRx.Tests
         public void should_remove_all_components_when_disposing()
         {
             var mockEventSystem = Substitute.For<IEventSystem>();
+            var mockPool = Substitute.For<IPool>();
 
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var entity = new Entity(Guid.NewGuid(), mockPool, mockEventSystem);
             var testComponentOne = entity.AddComponent<TestComponentOne>();
             var testComponentTwo = entity.AddComponent<TestComponentTwo>();
             var testComponentThree = entity.AddComponent<TestComponentThree>();

@@ -1,8 +1,8 @@
-﻿using EcsRx.Attributes;
-using EcsRx.Groups;
-using EcsRx.Systems;
+﻿using Reactor.Attributes;
+using Reactor.Groups;
+using Reactor.Systems;
 
-namespace EcsRx.Tests.Systems
+namespace Reactor.Tests.Systems
 {
     [Priority(1)]
     public class HighPrioritySystem : ISystem

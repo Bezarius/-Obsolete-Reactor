@@ -1,23 +1,23 @@
 ﻿using Assets.Tests.Scenes.GroupedPerformance.Components;
-using EcsRx.Entities;
-using EcsRx.Groups;
-using EcsRx.Systems;
-using EcsRx.Unity.Components;
+using Reactor.Entities;
+using Reactor.Groups;
+using Reactor.Systems;
+using Reactor.Unity.Components;
 using UniRx;
 using UnityEngine;
 
 namespace Assets.Tests.Scenes.GroupedPerformance.Systems
 {
-    public class EntityRotationSystem : IReactToEntitySystem
+    public class EntityRotationSystem : IEntityReactionSystem
     {
         public IGroup TargetGroup { get { return new Group(typeof(ViewComponent), typeof(RotationComponent)); } }
 
-        public IObservable<IEntity> ReactToEntity(IEntity entity)
+        public IObservable<IEntity> Impact(IEntity entity)
         {
             return Observable.EveryUpdate().Select(x => entity);
         }
 
-        public void Execute(IEntity entity)
+        public void Reaction(IEntity entity)
         {
             var rotationComponent = entity.GetComponent<RotationComponent>();
             var viewComponent = entity.GetComponent<ViewComponent>();

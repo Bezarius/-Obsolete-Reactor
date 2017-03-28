@@ -1,7 +1,7 @@
-﻿using EcsRx.Groups;
-using EcsRx.Systems;
+﻿using Reactor.Groups;
+using Reactor.Systems;
 
-namespace EcsRx.Tests.Systems
+namespace Reactor.Tests.Systems
 {
     public class DefaultPrioritySystem : ISystem
     {

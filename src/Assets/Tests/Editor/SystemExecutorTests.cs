@@ -1,18 +1,16 @@
 ﻿using System;
-using EcsRx.Components;
-using EcsRx.Entities;
-using EcsRx.Events;
-using EcsRx.Groups;
-using EcsRx.Pools;
-using EcsRx.Systems;
-using EcsRx.Systems.Executor;
-using EcsRx.Systems.Executor.Handlers;
-using EcsRx.Tests.Components;
+using Reactor.Entities;
+using Reactor.Events;
+using Reactor.Groups;
+using Reactor.Pools;
+using Reactor.Systems;
+using Reactor.Systems.Executor;
+using Reactor.Systems.Executor.Handlers;
+using Reactor.Tests.Components;
 using NSubstitute;
 using NUnit.Framework;
-using UniRx;
 
-namespace EcsRx.Tests
+namespace Reactor.Tests
 {
     [TestFixture]
     public class SystemExecutorTests
@@ -35,29 +33,12 @@ namespace EcsRx.Tests
         }
 
         [Test]
-        public void should_identify_as_react_with_data_system_and_add_to_systems()
-        {
-            var mockPoolManager = Substitute.For<IPoolManager>();
-            var mockEventSystem = Substitute.For<IEventSystem>();
-            var mockReactToDataSystemHandler = Substitute.For<IReactToDataSystemHandler>();
-            var fakeSystem = Substitute.For<IReactToDataSystem<int>>();
-
-            var systemExecutor = new SystemExecutor(mockPoolManager, mockEventSystem,
-                null, null, null, mockReactToDataSystemHandler, null);
-
-            systemExecutor.AddSystem(fakeSystem);
-
-            mockReactToDataSystemHandler.Received().SetupWithoutType(fakeSystem);
-            Assert.That(systemExecutor.Systems, Contains.Item(fakeSystem));
-        }
-
-        [Test]
         public void should_identify_as_reactive_entity_system_and_add_to_systems()
         {
             var mockPoolManager = Substitute.For<IPoolManager>();
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var mockReactToEntitySystemHandler = Substitute.For<IReactToEntitySystemHandler>();
-            var fakeSystem = Substitute.For<IReactToEntitySystem>();
+            var mockReactToEntitySystemHandler = Substitute.For<IEntityReactionSystemHandler>();
+            var fakeSystem = Substitute.For<IEntityReactionSystem>();
 
             var systemExecutor = new SystemExecutor(mockPoolManager, mockEventSystem,
                 mockReactToEntitySystemHandler, null, null, null, null);
@@ -73,8 +54,8 @@ namespace EcsRx.Tests
         {
             var mockPoolManager = Substitute.For<IPoolManager>();
             var mockEventSystem = Substitute.For<IEventSystem>();
-            var mockReactToGroupSystemHandler = Substitute.For<IReactToGroupSystemHandler>();
-            var fakeSystem = Substitute.For<IReactToGroupSystem>();
+            var mockReactToGroupSystemHandler = Substitute.For<IGroupReactionSystemHandler>();
+            var fakeSystem = Substitute.For<IGroupReactionSystem>();
 
             var systemExecutor = new SystemExecutor(mockPoolManager, mockEventSystem,
                 null, mockReactToGroupSystemHandler, null, null, null);
@@ -108,6 +89,7 @@ namespace EcsRx.Tests
         {
             var dummyGroup = new Group(typeof(TestComponentOne), typeof(TestComponentTwo));
             var mockPoolManager = Substitute.For<IPoolManager>();
+            var pool = mockPoolManager.GetPool();
             var mockEventSystem = Substitute.For<IEventSystem>();
             var mockSetupSystemHandler = Substitute.For<ISetupSystemHandler>();
             var fakeSystem = Substitute.For<ISetupSystem>();
@@ -118,7 +100,7 @@ namespace EcsRx.Tests
 
             systemExecutor.AddSystem(fakeSystem);
 
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var entity = new Entity(Guid.NewGuid(), pool, mockEventSystem);
             entity.AddComponent(new TestComponentOne());
             systemExecutor.OnEntityComponentAdded(new ComponentAddedEvent(entity, new TestComponentOne()));
             
@@ -136,6 +118,7 @@ namespace EcsRx.Tests
         {
             var dummyGroup = new Group(typeof(TestComponentOne), typeof(TestComponentTwo));
             var mockPoolManager = Substitute.For<IPoolManager>();
+            var pool = mockPoolManager.GetPool();
             var mockEventSystem = Substitute.For<IEventSystem>();
             var fakeSystem = Substitute.For<ITeardownSystem>();
             fakeSystem.TargetGroup.Returns(dummyGroup);
@@ -145,7 +128,7 @@ namespace EcsRx.Tests
 
             systemExecutor.AddSystem(fakeSystem);
 
-            var entity = new Entity(Guid.NewGuid(), mockEventSystem);
+            var entity = new Entity(Guid.NewGuid(), pool, mockEventSystem);
             entity.AddComponent(new TestComponentOne());
             entity.AddComponent(new TestComponentTwo());
             
