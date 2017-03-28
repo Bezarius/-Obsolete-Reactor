@@ -34,6 +34,6 @@ namespace Reactor.Groups
         }
 
         public IGroup Build()
-        { return new Group(_predicate, _components.ToArray()); }
+        { return new Group(_components.ToArray()); }
     }
 }

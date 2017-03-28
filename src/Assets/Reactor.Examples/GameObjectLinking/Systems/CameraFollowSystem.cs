@@ -8,10 +8,7 @@ namespace Assets.Reactor.Examples.GameObjectLinking.Systems
 {
     public class ChangeScaleOnLinkingSystem : ISetupSystem
     {
-        private readonly IGroup _targetSystem = new Group(x => {
-            var viewComponent = x.GetComponent<ViewComponent>();
-            return viewComponent.View != null;
-        }, typeof(ViewComponent));
+        private readonly IGroup _targetSystem = new Group(typeof(ViewComponent));
 
         public IGroup TargetGroup { get { return _targetSystem; } }
 
